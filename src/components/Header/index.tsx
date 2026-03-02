@@ -30,6 +30,7 @@ export function Header({ onResumeSelect, currentResumeText, onScrollToResumeSect
         <div className={styles.right}>
           <HamburgerMenu 
             user={user} 
+            userType={user?.userType}
             onLogin={login} 
             onLogout={logout}
             onResumeSelect={onResumeSelect}

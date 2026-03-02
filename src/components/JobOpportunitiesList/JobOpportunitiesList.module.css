@@ -199,6 +199,21 @@
   margin: 0 0 0.75rem 0;
 }
 
+.recruiterEmail {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9375rem;
+  color: var(--accent-primary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.recruiterEmail:hover {
+  color: var(--accent-secondary);
+  text-decoration: underline;
+}
+
 .description {
   color: var(--text-secondary);
   line-height: 1.6;

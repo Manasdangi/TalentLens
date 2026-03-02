@@ -4,10 +4,13 @@ import { SavedResumes } from '../SavedResumes';
 import type { SavedResume } from '../../types/resume';
 import styles from './Sidebar.module.css';
 
+type UserType = 'candidate' | 'recruiter';
+
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
   user: { name: string; email: string; picture?: string } | null;
+  userType?: UserType;
   onLogin: () => Promise<void>;
   onLogout: () => Promise<void>;
   onResumeSelect?: (content: string, fileName: string, savedResume?: SavedResume | null) => void;
@@ -15,8 +18,9 @@ interface SidebarProps {
   onScrollToResumeSection?: () => void;
 }
 
-export function Sidebar({ isOpen, onClose, user, onLogin, onLogout, onResumeSelect, currentResumeText, onScrollToResumeSection }: SidebarProps) {
+export function Sidebar({ isOpen, onClose, user, userType, onLogin, onLogout, onResumeSelect, currentResumeText, onScrollToResumeSection }: SidebarProps) {
   const { savedResumes } = useResumes();
+  const isRecruiter = userType === 'recruiter';
 
   const handleScrollToResumeAndClose = () => {
     onClose();
@@ -109,25 +113,27 @@ export function Sidebar({ isOpen, onClose, user, onLogin, onLogout, onResumeSele
           </div>
         )}
 
-        <nav className={styles.nav}>
-          <div className={styles.navSection}>
-            <h3 className={styles.navTitle}>Your Data</h3>
-            
-            <button className={styles.navItem}>
-              <FileText size={20} />
-              <span>Resumes Uploaded</span>
-              <span className={styles.badge}>{savedResumes.length}</span>
-            </button>
-            
-            <button className={styles.navItem}>
-              <Building2 size={20} />
-              <span>Applied Companies</span>
-              <span className={styles.badge}>0</span>
-            </button>
-          </div>
-        </nav>
+        {!isRecruiter && (
+          <nav className={styles.nav}>
+            <div className={styles.navSection}>
+              <h3 className={styles.navTitle}>Your Data</h3>
+              
+              <button className={styles.navItem}>
+                <FileText size={20} />
+                <span>Resumes Uploaded</span>
+                <span className={styles.badge}>{savedResumes.length}</span>
+              </button>
+              
+              <button className={styles.navItem}>
+                <Building2 size={20} />
+                <span>Applied Companies</span>
+                <span className={styles.badge}>0</span>
+              </button>
+            </div>
+          </nav>
+        )}
 
-        {user && onResumeSelect && (
+        {user && onResumeSelect && !isRecruiter && (
           <div className={styles.savedResumesSection}>
             <SavedResumes 
               onSelectResume={handleResumeSelect}

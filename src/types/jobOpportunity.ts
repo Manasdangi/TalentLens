@@ -3,6 +3,8 @@ import type { RoleType, ExperienceLevel } from '../components/RoleFilters';
 export interface JobOpportunity {
   id: string;
   recruiterId: string;
+  /** Recruiter's email; required for new postings, may be missing on older records. */
+  recruiterEmail?: string;
   title: string;
   company: string;
   description: string;
@@ -19,6 +21,7 @@ export interface JobOpportunity {
 }
 
 export interface JobOpportunityFormData {
+  recruiterEmail: string;
   title: string;
   company: string;
   description: string;

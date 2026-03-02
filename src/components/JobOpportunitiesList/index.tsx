@@ -1,11 +1,18 @@
 import { useState, useEffect } from 'react';
-import { Briefcase, MapPin, DollarSign, Clock, ExternalLink, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Briefcase, MapPin, DollarSign, Clock, ExternalLink, Loader2, ChevronDown, ChevronUp, Mail } from 'lucide-react';
 import { getJobOpportunities } from '../../services/jobOpportunityService';
 import { ROLES, EXPERIENCE_LEVELS } from '../RoleFilters';
 import type { JobOpportunity } from '../../types/jobOpportunity';
 import styles from './JobOpportunitiesList.module.css';
 
-export function JobOpportunitiesList() {
+interface JobOpportunitiesListProps {
+  /** When set, shows only this recruiter's jobs (e.g. "Your Posted Jobs"). */
+  recruiterId?: string;
+  /** Increment to refetch the list (e.g. after posting a new job). */
+  refreshTrigger?: number;
+}
+
+export function JobOpportunitiesList({ recruiterId, refreshTrigger }: JobOpportunitiesListProps = {}) {
   const [jobs, setJobs] = useState<JobOpportunity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -13,13 +20,13 @@ export function JobOpportunitiesList() {
 
   useEffect(() => {
     loadJobs();
-  }, []);
+  }, [recruiterId, refreshTrigger]);
 
   const loadJobs = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const jobList = await getJobOpportunities();
+      const jobList = await getJobOpportunities(recruiterId);
       setJobs(jobList);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to load job opportunities';
@@ -47,16 +54,25 @@ export function JobOpportunitiesList() {
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   };
 
+  const title = recruiterId ? 'Your Posted Jobs' : 'Job Opportunities';
+  const loadingMessage = recruiterId ? 'Loading your jobs...' : 'Loading job opportunities...';
+  const emptyMessage = recruiterId
+    ? "You haven't posted any jobs yet."
+    : 'No job opportunities available at the moment.';
+  const emptySubtext = recruiterId
+    ? 'Post your first job above to get started.'
+    : 'Check back later for new openings!';
+
   if (isLoading) {
     return (
       <div className={styles.container}>
         <div className={styles.header}>
           <Briefcase size={24} />
-          <h2>Job Opportunities</h2>
+          <h2>{title}</h2>
         </div>
         <div className={styles.loading}>
           <Loader2 size={24} className={styles.spinner} />
-          <span>Loading job opportunities...</span>
+          <span>{loadingMessage}</span>
         </div>
       </div>
     );
@@ -67,7 +83,7 @@ export function JobOpportunitiesList() {
       <div className={styles.container}>
         <div className={styles.header}>
           <Briefcase size={24} />
-          <h2>Job Opportunities</h2>
+          <h2>{title}</h2>
         </div>
         <div className={styles.error}>
           {error}
@@ -80,15 +96,15 @@ export function JobOpportunitiesList() {
     <div className={styles.container}>
       <div className={styles.header}>
         <Briefcase size={24} />
-        <h2>Job Opportunities</h2>
-        <span className={styles.count}>{jobs.length} {jobs.length === 1 ? 'job' : 'jobs'} available</span>
+        <h2>{title}</h2>
+        <span className={styles.count}>{jobs.length} {jobs.length === 1 ? 'job' : 'jobs'} {recruiterId ? 'posted' : 'available'}</span>
       </div>
 
       {jobs.length === 0 ? (
         <div className={styles.empty}>
           <Briefcase size={48} className={styles.emptyIcon} />
-          <p>No job opportunities available at the moment.</p>
-          <p className={styles.emptySubtext}>Check back later for new openings!</p>
+          <p>{emptyMessage}</p>
+          <p className={styles.emptySubtext}>{emptySubtext}</p>
         </div>
       ) : (
         <div className={styles.jobsList}>
@@ -131,6 +147,19 @@ export function JobOpportunitiesList() {
 
               {expandedJobId === job.id && (
                 <div className={styles.jobDetails}>
+                  {job.recruiterEmail && (
+                    <div className={styles.section}>
+                      <h4>Recruiter Contact</h4>
+                      <a
+                        href={`mailto:${job.recruiterEmail}`}
+                        className={styles.recruiterEmail}
+                      >
+                        <Mail size={16} />
+                        {job.recruiterEmail}
+                      </a>
+                    </div>
+                  )}
+
                   <div className={styles.section}>
                     <h4>Job Description</h4>
                     <p className={styles.description}>{job.description}</p>

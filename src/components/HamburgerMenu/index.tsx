@@ -3,8 +3,11 @@ import { Menu } from 'lucide-react';
 import { Sidebar } from '../Sidebar';
 import styles from './HamburgerMenu.module.css';
 
+type UserType = 'candidate' | 'recruiter';
+
 interface HamburgerMenuProps {
   user: { name: string; email: string; picture?: string } | null;
+  userType?: UserType;
   onLogin: () => Promise<void>;
   onLogout: () => Promise<void>;
   onResumeSelect?: (content: string, fileName: string) => void;
@@ -12,7 +15,7 @@ interface HamburgerMenuProps {
   onScrollToResumeSection?: () => void;
 }
 
-export function HamburgerMenu({ user, onLogin, onLogout, onResumeSelect, currentResumeText, onScrollToResumeSection }: HamburgerMenuProps) {
+export function HamburgerMenu({ user, userType, onLogin, onLogout, onResumeSelect, currentResumeText, onScrollToResumeSection }: HamburgerMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -29,6 +32,7 @@ export function HamburgerMenu({ user, onLogin, onLogout, onResumeSelect, current
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         user={user}
+        userType={userType}
         onLogin={onLogin}
         onLogout={onLogout}
         onResumeSelect={onResumeSelect}

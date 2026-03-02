@@ -31,7 +31,6 @@ export async function getJobOpportunities(recruiterId?: string): Promise<JobOppo
 
   const snapshot = await getDocs(q);
   const jobs = snapshot.docs.map(doc => doc.data() as JobOpportunity);
-  
   // Sort by createdAt in memory (newest first) to avoid requiring a composite index
   return jobs.sort((a, b) => b.createdAt - a.createdAt);
 }
@@ -67,6 +66,7 @@ export async function createJobOpportunity(
   const jobOpportunity: JobOpportunity = {
     id: jobId,
     recruiterId,
+    recruiterEmail: formData.recruiterEmail,
     title: formData.title,
     company: formData.company,
     description: formData.description,
@@ -100,18 +100,24 @@ export async function updateJobOpportunity(
   }
 
   const updateData: Partial<JobOpportunity> = {
-    ...formData,
     updatedAt: Date.now(),
+    ...(formData.recruiterEmail !== undefined && { recruiterEmail: formData.recruiterEmail }),
+    ...(formData.title !== undefined && { title: formData.title }),
+    ...(formData.company !== undefined && { company: formData.company }),
+    ...(formData.description !== undefined && { description: formData.description }),
+    ...(formData.role !== undefined && { role: formData.role }),
+    ...(formData.experienceLevel !== undefined && { experienceLevel: formData.experienceLevel }),
+    ...(formData.location !== undefined && { location: formData.location }),
+    ...(formData.salaryRange !== undefined && { salaryRange: formData.salaryRange }),
+    ...(formData.applicationLink !== undefined && { applicationLink: formData.applicationLink }),
   };
 
-  // Parse requirements and benefits if provided
-  if (formData.requirements) {
+  if (formData.requirements !== undefined) {
     updateData.requirements = formData.requirements
       .split('\n')
       .map(r => r.trim())
       .filter(r => r.length > 0);
   }
-  
   if (formData.benefits !== undefined) {
     updateData.benefits = formData.benefits
       ? formData.benefits.split('\n').map(b => b.trim()).filter(b => b.length > 0)

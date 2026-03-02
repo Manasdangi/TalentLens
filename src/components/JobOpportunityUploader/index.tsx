@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Briefcase, Plus, Loader2, CheckCircle } from 'lucide-react';
 import { RoleFilters, type RoleType, type ExperienceLevel } from '../RoleFilters';
 import { createJobOpportunity } from '../../services/jobOpportunityService';
@@ -6,13 +6,19 @@ import { useAuth } from '../../context/AuthContext';
 import type { JobOpportunityFormData } from '../../types/jobOpportunity';
 import styles from './JobOpportunityUploader.module.css';
 
-export function JobOpportunityUploader() {
+interface JobOpportunityUploaderProps {
+  /** Called after a job is successfully posted (e.g. to refresh recruiter's job list). */
+  onJobPosted?: () => void;
+}
+
+export function JobOpportunityUploader({ onJobPosted }: JobOpportunityUploaderProps = {}) {
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
   const [formData, setFormData] = useState<JobOpportunityFormData>({
+    recruiterEmail: '',
     title: '',
     company: '',
     description: '',
@@ -25,6 +31,13 @@ export function JobOpportunityUploader() {
     applicationLink: '',
   });
 
+  // Prefill recruiter email when user is available
+  useEffect(() => {
+    if (user?.email) {
+      setFormData(prev => ({ ...prev, recruiterEmail: user.email }));
+    }
+  }, [user?.email]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -33,8 +46,8 @@ export function JobOpportunityUploader() {
       return;
     }
 
-    if (!formData.title || !formData.company || !formData.description || !formData.role || !formData.experienceLevel) {
-      setError('Please fill in all required fields');
+    if (!formData.recruiterEmail?.trim() || !formData.title || !formData.company || !formData.description || !formData.role || !formData.experienceLevel) {
+      setError('Please fill in all required fields (including your email)');
       return;
     }
 
@@ -45,8 +58,10 @@ export function JobOpportunityUploader() {
     try {
       await createJobOpportunity(user.id, formData);
       setSuccess(true);
-      // Reset form
-      setFormData({
+      onJobPosted?.();
+      // Reset form (keep recruiter email)
+      setFormData(prev => ({
+        ...prev,
         title: '',
         company: '',
         description: '',
@@ -57,7 +72,7 @@ export function JobOpportunityUploader() {
         requirements: '',
         benefits: '',
         applicationLink: '',
-      });
+      }));
       
       // Reset success message after 3 seconds
       setTimeout(() => setSuccess(false), 3000);
@@ -82,6 +97,18 @@ export function JobOpportunityUploader() {
       </div>
 
       <form onSubmit={handleSubmit} className={styles.form}>
+        <div className={styles.formGroup}>
+          <label>Your Email *</label>
+          <input
+            type="email"
+            value={formData.recruiterEmail}
+            onChange={(e) => handleInputChange('recruiterEmail', e.target.value)}
+            placeholder="your.email@company.com"
+            required
+            className={styles.input}
+          />
+        </div>
+
         <div className={styles.formRow}>
           <div className={styles.formGroup}>
             <label>Job Title *</label>

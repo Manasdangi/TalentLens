@@ -22,6 +22,8 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showUserTypeModal, setShowUserTypeModal] = useState(false);
+  const [recruiterJobsRefreshTrigger, setRecruiterJobsRefreshTrigger] = useState(0);
+  const [showPostJobModal, setShowPostJobModal] = useState(false);
 
   const resultsRef = useRef<HTMLDivElement>(null);
 
@@ -112,10 +114,39 @@ function App() {
           currentResumeText={resumeText}
           onScrollToResumeSection={scrollToResumeSection}
         />
+        <button
+          type="button"
+          className={styles.postNewJobBtn}
+          onClick={() => setShowPostJobModal(true)}
+          aria-label="Post new job"
+        >
+          POST NEW JOB
+        </button>
         <main className={styles.main}>
-          <JobOpportunityUploader />
+          <JobOpportunitiesList recruiterId={user.id} refreshTrigger={recruiterJobsRefreshTrigger} />
         </main>
         <Footer />
+
+        {showPostJobModal && (
+          <div className={styles.modalOverlay} onClick={() => setShowPostJobModal(false)}>
+            <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+              <button
+                type="button"
+                className={styles.modalCloseBtn}
+                onClick={() => setShowPostJobModal(false)}
+                aria-label="Close"
+              >
+                ×
+              </button>
+              <JobOpportunityUploader
+                onJobPosted={() => {
+                  setRecruiterJobsRefreshTrigger(t => t + 1);
+                  setShowPostJobModal(false);
+                }}
+              />
+            </div>
+          </div>
+        )}
       </div>
     );
   }
