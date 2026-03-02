@@ -9,6 +9,7 @@ import { UserTypeSelection } from './components/UserTypeSelection';
 import { useAuth } from './context/AuthContext';
 import { scoreResume, type ScoringResult } from './utils/llmScorer';
 import type { RoleType, ExperienceLevel } from './components/RoleFilters';
+import type { SavedResume } from './types/resume';
 import styles from './App.module.css';
 
 function App() {
@@ -67,8 +68,13 @@ function App() {
     }
   };
 
-  const handleResumeSelect = (content: string, _fileName: string) => {
+  const handleResumeSelect = (content: string, _fileName: string, savedResume?: SavedResume | null) => {
     setResumeText(content);
+    if (savedResume) {
+      setSelectedRole((savedResume.targetRole ?? '') as RoleType);
+      setSelectedExperience((savedResume.experienceLevel ?? '') as ExperienceLevel);
+      setJobDescription(savedResume.jobDescription ?? '');
+    }
   };
 
   const scrollToResumeSection = () => {
