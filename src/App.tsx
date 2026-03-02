@@ -126,6 +126,7 @@ function App() {
       <Header 
         onResumeSelect={handleResumeSelect}
         currentResumeText={resumeText}
+        onScrollToResumeSection={scrollToResumeSection}
       />
 
       <main className={styles.main}>

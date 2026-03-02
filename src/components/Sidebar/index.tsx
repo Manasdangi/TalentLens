@@ -1,6 +1,7 @@
 import { X, LogOut, User, FileText, Building2, LogIn } from 'lucide-react';
 import { useResumes } from '../../context/ResumeContext';
 import { SavedResumes } from '../SavedResumes';
+import type { SavedResume } from '../../types/resume';
 import styles from './Sidebar.module.css';
 
 interface SidebarProps {
@@ -9,7 +10,7 @@ interface SidebarProps {
   user: { name: string; email: string; picture?: string } | null;
   onLogin: () => Promise<void>;
   onLogout: () => Promise<void>;
-  onResumeSelect?: (content: string, fileName: string) => void;
+  onResumeSelect?: (content: string, fileName: string, savedResume?: SavedResume | null) => void;
   currentResumeText?: string;
   onScrollToResumeSection?: () => void;
 }
@@ -18,13 +19,17 @@ export function Sidebar({ isOpen, onClose, user, onLogin, onLogout, onResumeSele
   const { savedResumes } = useResumes();
 
   const handleScrollToResumeAndClose = () => {
-    onScrollToResumeSection?.();
     onClose();
+    // Scroll after sidebar close transition so the target is visible and layout is stable
+    const transitionMs = 320;
+    setTimeout(() => {
+      onScrollToResumeSection?.();
+    }, transitionMs);
   };
   
-  const handleResumeSelect = (content: string, fileName: string) => {
+  const handleResumeSelect = (content: string, fileName: string, savedResume?: SavedResume | null) => {
     if (onResumeSelect) {
-      onResumeSelect(content, fileName);
+      onResumeSelect(content, fileName, savedResume);
       onClose(); // Close sidebar after selecting a resume
     }
   };

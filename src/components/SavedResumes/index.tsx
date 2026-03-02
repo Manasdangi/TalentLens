@@ -8,7 +8,7 @@ import { SavedResumeCard } from './SavedResumeCard';
 import styles from './SavedResumes.module.css';
 
 interface SavedResumesProps {
-  onSelectResume: (content: string, fileName: string) => void;
+  onSelectResume: (content: string, fileName: string, savedResume?: SavedResume | null) => void;
   currentResumeText: string;
   className?: string;
   /** Called when edit is clicked; if provided, edit icon is shown. Typically scrolls to resume section. */
@@ -22,7 +22,7 @@ export function SavedResumes({ onSelectResume, currentResumeText, className, onS
 
   const handleSelectResume = (resume: SavedResume) => {
     selectResume(resume);
-    onSelectResume(resume.content, resume.fileName);
+    onSelectResume(resume.content, resume.fileName, resume);
   };
 
   const handleEditResume = (resume: SavedResume) => {

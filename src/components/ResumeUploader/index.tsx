@@ -3,7 +3,7 @@ import { Upload, FileText, X, CheckCircle, Save, Loader2 } from 'lucide-react';
 import { extractTextFromPDF } from '../../utils/pdfExtractor';
 import { useResumes } from '../../context/ResumeContext';
 import { useAuth } from '../../context/AuthContext';
-import { RESUME_CATEGORIES, MAX_SAVED_RESUMES } from '../../types/resume';
+import { MAX_SAVED_RESUMES } from '../../types/resume';
 import type { ResumeCategory } from '../../types/resume';
 import { ROLES, EXPERIENCE_LEVELS, type RoleType, type ExperienceLevel } from '../RoleFilters';
 import styles from './ResumeUploader.module.css';
@@ -28,7 +28,6 @@ export function ResumeUploader({ onTextExtracted, extractedText, selectedRole, s
   // Save modal state
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [saveLabel, setSaveLabel] = useState('');
-  const [saveCategory, setSaveCategory] = useState<ResumeCategory>('frontend');
   const [saveRole, setSaveRole] = useState<RoleType>('');
   const [saveExperience, setSaveExperience] = useState<ExperienceLevel>('');
   const [isSaving, setIsSaving] = useState(false);
@@ -86,13 +85,6 @@ export function ResumeUploader({ onTextExtracted, extractedText, selectedRole, s
 
   const handleOpenSaveModal = () => {
     setSaveLabel(fileName?.replace('.pdf', '') || 'My Resume');
-    // Prefill category, target role, and experience from current form
-    if (selectedRole) {
-      const category = selectedRole as ResumeCategory;
-      if (RESUME_CATEGORIES.some(cat => cat.value === category)) {
-        setSaveCategory(category);
-      }
-    }
     setSaveRole(selectedRole ?? '');
     setSaveExperience(selectedExperience ?? '');
     setShowSaveModal(true);
@@ -105,8 +97,10 @@ export function ResumeUploader({ onTextExtracted, extractedText, selectedRole, s
     setError(null);
     
     try {
+      // Use target role as category (same set of values)
+      const category = (saveRole || 'other') as ResumeCategory;
       const result = await saveResume(
-        saveCategory,
+        category,
         saveLabel.trim(),
         extractedText,
         fileName,
@@ -229,21 +223,6 @@ export function ResumeUploader({ onTextExtracted, extractedText, selectedRole, s
               />
             </div>
             
-            <div className={styles.formGroup}>
-              <label>Category</label>
-              <select
-                value={saveCategory}
-                onChange={(e) => setSaveCategory(e.target.value as ResumeCategory)}
-                className={styles.selectInput}
-              >
-                {RESUME_CATEGORIES.map((cat) => (
-                  <option key={cat.value} value={cat.value}>
-                    {cat.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
             <div className={styles.formGroup}>
               <label>Target Role</label>
               <select
