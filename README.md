@@ -1,73 +1,107 @@
-# React + TypeScript + Vite
+# TalentLens
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+TalentLens is a resume–job fit analysis platform that helps **candidates** improve their applications and **recruiters** manage job opportunities. It uses AI to score resumes against role, experience level, and optional job descriptions, with actionable feedback.
 
-Currently, two official plugins are available:
+## What it does
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Candidates**: Upload a resume (PDF), optionally link or paste a job description, choose role and experience level, and get an AI-powered fit score with strengths, improvements, and keyword match/missing analysis.
+- **Recruiters**: Sign in as a recruiter to upload and manage job opportunities that candidates can use for analysis.
 
-## React Compiler
+Analysis is powered by an LLM (Groq) that acts like an ATS/HR expert: it returns a score (poor → excellent), percentage, summary, strengths, improvements, keyword matches, and missing keywords.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Tech stack
 
-## Expanding the ESLint configuration
+- **Frontend**: React 19, TypeScript, Vite, CSS Modules, Firebase (auth), Google OAuth (`@react-oauth/google`), Groq SDK, OpenAI, PDF.js for resume parsing.
+- **Backend**: Node.js, Express, Passport (Google OAuth), sessions, CORS. Optional for auth/session handling.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Project structure
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```
+TalentLens/
+├── src/                    # Frontend (React + Vite)
+│   ├── components/         # UI (Header, InputSection, AnalysisResults, etc.)
+│   ├── context/            # AuthContext, ResumeContext
+│   ├── services/           # resumeService, jobOpportunityService, userService
+│   ├── utils/              # llmScorer, pdfExtractor
+│   ├── types/              # resume, jobOpportunity
+│   └── config/             # Firebase
+├── backend/                # Express API (Google OAuth, sessions)
+│   └── src/
+│       └── index.ts
+├── firestore.rules         # Firestore security rules
+└── README.md
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Getting started
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Prerequisites
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- Node.js (v18+)
+- A [Groq](https://console.groq.com/) API key for resume scoring
+- Firebase project (for auth and optional Firestore)
+- Optional: Google OAuth credentials for the backend
+
+### Frontend
+
+1. Clone the repo and install dependencies:
+
+   ```bash
+   cd TalentLens
+   npm install
+   ```
+
+2. Create a `.env` (or `.env.local`) in the project root with:
+
+   ```env
+   VITE_GROQ_API_KEY=your-groq-api-key
+   # Plus any Firebase / Google OAuth vars your app uses (e.g. VITE_FIREBASE_*)
+   ```
+
+3. Run the dev server:
+
+   ```bash
+   npm run dev
+   ```
+
+4. Build for production:
+
+   ```bash
+   npm run build
+   npm run preview   # optional: preview production build
+   ```
+
+### Backend (optional)
+
+Used for server-side Google OAuth and sessions.
+
+1. Go to the backend folder and install dependencies:
+
+   ```bash
+   cd backend
+   yarn install
+   ```
+
+2. Copy `.env.example` to `.env` and set:
+
+   - `PORT`, `SESSION_SECRET`
+   - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
+   - `FRONTEND_URL` (e.g. `http://localhost:5173`)
+
+3. Run the server:
+
+   ```bash
+   yarn dev
+   ```
+
+## Scripts
+
+| Command     | Description                |
+|------------|----------------------------|
+| `npm run dev`     | Start Vite dev server      |
+| `npm run build`   | TypeScript build + Vite build |
+| `npm run preview` | Preview production build   |
+| `npm run lint`    | Run ESLint                 |
+
+## License
+
+Private project. All rights reserved.
