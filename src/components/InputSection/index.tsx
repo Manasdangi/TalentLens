@@ -3,6 +3,7 @@ import { JobDescriptionInput } from '../JobDescriptionInput';
 import { RoleFilters, type RoleType, type ExperienceLevel } from '../RoleFilters';
 import { AnalyzeButton } from '../AnalyzeButton';
 import { ErrorMessage } from '../ErrorMessage';
+import { useResumes } from '../../context/ResumeContext';
 import styles from './InputSection.module.css';
 
 interface InputSectionProps {
@@ -32,7 +33,16 @@ export function InputSection({
   onExperienceChange,
   onAnalyze,
 }: InputSectionProps) {
-  const canAnalyze = resumeText.length > 0 && jobDescription.length > 0 && selectedRole && selectedExperience;
+  const { selectResume } = useResumes();
+  const canAnalyze = resumeText.length > 0 && selectedRole && selectedExperience;
+
+  const handleResumeChange = (text: string) => {
+    // If user clears or uploads a new resume, deselect saved resume
+    if (text === '') {
+      selectResume(null);
+    }
+    onResumeChange(text);
+  };
 
   return (
     <div className={styles.section}>
@@ -45,8 +55,9 @@ export function InputSection({
 
       <div className={styles.columns}>
         <ResumeUploader
-          onTextExtracted={onResumeChange}
+          onTextExtracted={handleResumeChange}
           extractedText={resumeText}
+          selectedRole={selectedRole}
         />
         <JobDescriptionInput
           value={jobDescription}
@@ -64,4 +75,3 @@ export function InputSection({
     </div>
   );
 }
-

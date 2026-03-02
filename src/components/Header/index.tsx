@@ -3,7 +3,12 @@ import { HamburgerMenu } from '../HamburgerMenu';
 import { useAuth } from '../../context/AuthContext';
 import styles from './Header.module.css';
 
-export function Header() {
+interface HeaderProps {
+  onResumeSelect?: (content: string, fileName: string) => void;
+  currentResumeText?: string;
+}
+
+export function Header({ onResumeSelect, currentResumeText }: HeaderProps) {
   const { user, login, logout } = useAuth();
 
   return (
@@ -22,7 +27,13 @@ export function Header() {
         </div>
 
         <div className={styles.right}>
-          <HamburgerMenu user={user} onLogin={login} onLogout={logout} />
+          <HamburgerMenu 
+            user={user} 
+            onLogin={login} 
+            onLogout={logout}
+            onResumeSelect={onResumeSelect}
+            currentResumeText={currentResumeText}
+          />
         </div>
       </div>
     </header>

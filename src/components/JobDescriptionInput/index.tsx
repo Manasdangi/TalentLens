@@ -11,7 +11,7 @@ export function JobDescriptionInput({ value, onChange }: JobDescriptionInputProp
         <div className={styles.container}>
             <div className={styles.header}>
                 <Briefcase size={20} />
-                <h2>Job Description</h2>
+                <h2>Job Description <span style={{ fontSize: '0.875rem', fontWeight: 'normal', color: 'var(--text-muted)' }}>(Optional)</span></h2>
             </div>
 
             <textarea

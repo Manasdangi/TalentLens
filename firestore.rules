@@ -1,0 +1,25 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Resumes collection - users can only access their own document
+    match /Resumes/{userId} {
+      // Allow read/write only if the authenticated user's UID matches the document ID
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Users collection - users can read/write their own profile
+    match /Users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // JobOpportunities collection
+    match /JobOpportunities/{jobId} {
+      // Anyone can read active job opportunities
+      allow read: if request.auth != null && resource.data.isActive == true;
+      // Recruiters can create their own job opportunities
+      allow create: if request.auth != null && request.resource.data.recruiterId == request.auth.uid;
+      // Only the recruiter who created it can update/delete
+      allow update, delete: if request.auth != null && resource.data.recruiterId == request.auth.uid;
+    }
+  }
+}

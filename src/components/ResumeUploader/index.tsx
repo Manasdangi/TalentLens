@@ -1,18 +1,34 @@
 import { useCallback, useState } from 'react';
-import { Upload, FileText, X, CheckCircle } from 'lucide-react';
+import { Upload, FileText, X, CheckCircle, Save, Loader2 } from 'lucide-react';
 import { extractTextFromPDF } from '../../utils/pdfExtractor';
+import { useResumes } from '../../context/ResumeContext';
+import { useAuth } from '../../context/AuthContext';
+import { RESUME_CATEGORIES, MAX_SAVED_RESUMES } from '../../types/resume';
+import type { ResumeCategory } from '../../types/resume';
+import type { RoleType } from '../RoleFilters';
 import styles from './ResumeUploader.module.css';
 
 interface ResumeUploaderProps {
   onTextExtracted: (text: string) => void;
   extractedText: string;
+  selectedRole?: RoleType;
 }
 
-export function ResumeUploader({ onTextExtracted, extractedText }: ResumeUploaderProps) {
+export function ResumeUploader({ onTextExtracted, extractedText, selectedRole }: ResumeUploaderProps) {
+  const { user } = useAuth();
+  const { savedResumes, saveResume, selectedResume } = useResumes();
+  
   const [isDragging, setIsDragging] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Save modal state
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [saveLabel, setSaveLabel] = useState('');
+  const [saveCategory, setSaveCategory] = useState<ResumeCategory>('frontend');
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   const handleFile = useCallback(async (file: File) => {
     if (file.type !== 'application/pdf') {
@@ -23,6 +39,7 @@ export function ResumeUploader({ onTextExtracted, extractedText }: ResumeUploade
     setIsLoading(true);
     setError(null);
     setFileName(file.name);
+    setSaveSuccess(false);
 
     try {
       const text = await extractTextFromPDF(file);
@@ -60,15 +77,59 @@ export function ResumeUploader({ onTextExtracted, extractedText }: ResumeUploade
     setFileName(null);
     onTextExtracted('');
     setError(null);
+    setSaveSuccess(false);
   }, [onTextExtracted]);
 
+  const handleOpenSaveModal = () => {
+    setSaveLabel(fileName?.replace('.pdf', '') || 'My Resume');
+    // Set category based on selected role if available
+    if (selectedRole && selectedRole !== '') {
+      const category = selectedRole as ResumeCategory;
+      if (RESUME_CATEGORIES.some(cat => cat.value === category)) {
+        setSaveCategory(category);
+      }
+    }
+    setShowSaveModal(true);
+  };
+
+  const handleSaveResume = async () => {
+    if (!saveLabel.trim() || !fileName) return;
+    
+    setIsSaving(true);
+    setError(null);
+    
+    try {
+      const result = await saveResume(
+        saveCategory,
+        saveLabel.trim(),
+        extractedText,
+        fileName
+      );
+      
+      if (result) {
+        setShowSaveModal(false);
+        setSaveSuccess(true);
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to save resume';
+      setError(message);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const hasContent = extractedText.length > 0;
+  const canSave = user && savedResumes.length < MAX_SAVED_RESUMES && !selectedResume;
+  const isFromSaved = selectedResume !== null;
 
   return (
     <div className={styles.container}>
       <div className={styles.header}>
         <FileText size={20} />
         <h2>Resume</h2>
+        {isFromSaved && (
+          <span className={styles.savedBadge}>From Saved</span>
+        )}
       </div>
 
       {!hasContent ? (
@@ -105,7 +166,7 @@ export function ResumeUploader({ onTextExtracted, extractedText }: ResumeUploade
         <div className={styles.uploaded}>
           <div className={styles.fileInfo}>
             <CheckCircle size={20} className={styles.successIcon} />
-            <span className={styles.fileName}>{fileName}</span>
+            <span className={styles.fileName}>{fileName || selectedResume?.fileName}</span>
             <button onClick={handleClear} className={styles.clearBtn}>
               <X size={16} />
             </button>
@@ -113,12 +174,92 @@ export function ResumeUploader({ onTextExtracted, extractedText }: ResumeUploade
           <div className={styles.preview}>
             <pre>{extractedText.slice(0, 500)}{extractedText.length > 500 ? '...' : ''}</pre>
           </div>
-          <p className={styles.charCount}>{extractedText.length} characters extracted</p>
+          <div className={styles.footer}>
+            <p className={styles.charCount}>{extractedText.length} characters extracted</p>
+            
+            {canSave && !saveSuccess && (
+              <button 
+                className={styles.saveBtn}
+                onClick={handleOpenSaveModal}
+              >
+                <Save size={14} />
+                Save to Account
+              </button>
+            )}
+            
+            {saveSuccess && (
+              <span className={styles.saveSuccessMsg}>
+                <CheckCircle size={14} />
+                Saved!
+              </span>
+            )}
+          </div>
         </div>
       )}
 
       {error && <p className={styles.error}>{error}</p>}
+
+      {/* Save Modal */}
+      {showSaveModal && (
+        <div className={styles.modalOverlay} onClick={() => setShowSaveModal(false)}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <h3 className={styles.modalTitle}>Save Resume</h3>
+            
+            <div className={styles.formGroup}>
+              <label>Label</label>
+              <input
+                type="text"
+                value={saveLabel}
+                onChange={(e) => setSaveLabel(e.target.value)}
+                placeholder="e.g., Frontend Resume v2"
+                className={styles.textInput}
+                maxLength={50}
+              />
+            </div>
+            
+            <div className={styles.formGroup}>
+              <label>Category</label>
+              <select
+                value={saveCategory}
+                onChange={(e) => setSaveCategory(e.target.value as ResumeCategory)}
+                className={styles.selectInput}
+              >
+                {RESUME_CATEGORIES.map((cat) => (
+                  <option key={cat.value} value={cat.value}>
+                    {cat.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            
+            <div className={styles.modalActions}>
+              <button 
+                className={styles.cancelBtn}
+                onClick={() => setShowSaveModal(false)}
+              >
+                Cancel
+              </button>
+              <button 
+                className={styles.confirmSaveBtn}
+                onClick={handleSaveResume}
+                disabled={isSaving || !saveLabel.trim()}
+              >
+                {isSaving ? (
+                  <>
+                    <Loader2 size={14} className={styles.spinnerSmall} />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save size={14} />
+                    Save Resume
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-

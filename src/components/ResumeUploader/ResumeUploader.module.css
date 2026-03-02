@@ -21,6 +21,16 @@
   font-weight: 600;
 }
 
+.savedBadge {
+  font-size: 0.65rem;
+  background: rgba(99, 102, 241, 0.15);
+  color: var(--accent-secondary);
+  padding: 0.2rem 0.5rem;
+  border-radius: 10px;
+  margin-left: auto;
+  font-weight: 500;
+}
+
 .dropzone {
   flex: 1;
   display: flex;
@@ -73,6 +83,10 @@
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
   margin: 0 auto 1rem;
+}
+
+.spinnerSmall {
+  animation: spin 0.8s linear infinite;
 }
 
 @keyframes spin {
@@ -143,10 +157,45 @@
   line-height: 1.5;
 }
 
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
 .charCount {
   font-size: 0.75rem;
   color: var(--text-muted);
-  text-align: right;
+}
+
+.saveBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--accent-primary);
+  color: white;
+  border: none;
+  padding: 0.5rem 0.875rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.saveBtn:hover {
+  background: var(--accent-secondary);
+  transform: translateY(-1px);
+}
+
+.saveSuccessMsg {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--score-good);
+  font-size: 0.8rem;
+  font-weight: 500;
 }
 
 .error {
@@ -155,3 +204,135 @@
   margin-top: 0.5rem;
 }
 
+/* Modal Styles */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 1.5rem;
+  width: 90%;
+  max-width: 400px;
+  animation: slideUp 0.25s ease;
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modalTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 1.25rem;
+}
+
+.formGroup {
+  margin-bottom: 1rem;
+}
+
+.formGroup label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 0.4rem;
+}
+
+.textInput,
+.selectInput {
+  width: 100%;
+  padding: 0.75rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  transition: border-color 0.2s;
+}
+
+.textInput:focus,
+.selectInput:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+}
+
+.selectInput {
+  cursor: pointer;
+}
+
+.selectInput option {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.modalActions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.cancelBtn {
+  flex: 1;
+  padding: 0.75rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancelBtn:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.confirmSaveBtn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.75rem;
+  background: var(--accent-primary);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.confirmSaveBtn:hover:not(:disabled) {
+  background: var(--accent-secondary);
+}
+
+.confirmSaveBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

@@ -5,11 +5,13 @@ import styles from './HamburgerMenu.module.css';
 
 interface HamburgerMenuProps {
   user: { name: string; email: string; picture?: string } | null;
-  onLogin: (credentialResponse: { credential?: string }) => void;
-  onLogout: () => void;
+  onLogin: () => Promise<void>;
+  onLogout: () => Promise<void>;
+  onResumeSelect?: (content: string, fileName: string) => void;
+  currentResumeText?: string;
 }
 
-export function HamburgerMenu({ user, onLogin, onLogout }: HamburgerMenuProps) {
+export function HamburgerMenu({ user, onLogin, onLogout, onResumeSelect, currentResumeText }: HamburgerMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -28,6 +30,8 @@ export function HamburgerMenu({ user, onLogin, onLogout }: HamburgerMenuProps) {
         user={user}
         onLogin={onLogin}
         onLogout={onLogout}
+        onResumeSelect={onResumeSelect}
+        currentResumeText={currentResumeText}
       />
     </>
   );

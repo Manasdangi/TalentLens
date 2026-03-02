@@ -18,12 +18,16 @@ export interface ScoringResult {
   missingKeywords: string[];
 }
 
-function getScorePrompt(role: string, experience: string): string {
+function getScorePrompt(role: string, experience: string, hasJobDescription: boolean): string {
+  const jobDescriptionContext = hasJobDescription 
+    ? "Analyze the provided resume against the job description and provide a detailed assessment."
+    : "Analyze the provided resume based on general best practices for this role and experience level. Since no specific job description was provided, focus on the resume's overall quality, relevance to the role, and general industry standards.";
+  
   return `You are an expert ATS (Applicant Tracking System) and HR professional specializing in tech recruitment.
 
 You are evaluating a candidate for a **${role}** position at the **${experience}** level.
 
-Analyze the provided resume against the job description and provide a detailed assessment.
+${jobDescriptionContext}
 
 Return your response as a valid JSON object with this exact structure:
 {
@@ -68,15 +72,20 @@ export async function scoreResume(
 ): Promise<ScoringResult> {
   const role = ROLES.find(r => r.value === roleType)?.label || roleType;
   const experience = EXPERIENCE_LEVELS.find(e => e.value === experienceLevel)?.label || experienceLevel;
+  const hasJobDescription = jobDescription.trim().length > 0;
+
+  const userContent = hasJobDescription
+    ? `RESUME:\n${resumeText}\n\n---\n\nJOB DESCRIPTION:\n${jobDescription}`
+    : `RESUME:\n${resumeText}\n\n---\n\nNote: No specific job description was provided. Please evaluate the resume based on general best practices for a ${role} at ${experience} level.`;
 
   try {
     const response = await client.chat.completions.create({
       model: "llama-3.3-70b-versatile",
       messages: [
-        { role: "system", content: getScorePrompt(role, experience) },
+        { role: "system", content: getScorePrompt(role, experience, hasJobDescription) },
         {
           role: "user",
-          content: `RESUME:\n${resumeText}\n\n---\n\nJOB DESCRIPTION:\n${jobDescription}`,
+          content: userContent,
         },
       ],
       response_format: { type: "json_object" },
