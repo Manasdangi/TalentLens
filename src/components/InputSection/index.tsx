@@ -6,6 +6,8 @@ import { ErrorMessage } from '../ErrorMessage';
 import { useResumes } from '../../context/ResumeContext';
 import styles from './InputSection.module.css';
 
+export const RESUME_INPUT_SECTION_ID = 'resume-input-section';
+
 interface InputSectionProps {
   resumeText: string;
   jobDescription: string;
@@ -18,6 +20,7 @@ interface InputSectionProps {
   onRoleChange: (role: RoleType) => void;
   onExperienceChange: (exp: ExperienceLevel) => void;
   onAnalyze: () => void;
+  id?: string;
 }
 
 export function InputSection({
@@ -32,6 +35,7 @@ export function InputSection({
   onRoleChange,
   onExperienceChange,
   onAnalyze,
+  id = RESUME_INPUT_SECTION_ID,
 }: InputSectionProps) {
   const { selectResume } = useResumes();
   const canAnalyze = resumeText.length > 0 && selectedRole && selectedExperience;
@@ -45,7 +49,7 @@ export function InputSection({
   };
 
   return (
-    <div className={styles.section}>
+    <div id={id} className={styles.section}>
       <RoleFilters
         selectedRole={selectedRole}
         selectedExperience={selectedExperience}
@@ -58,6 +62,8 @@ export function InputSection({
           onTextExtracted={handleResumeChange}
           extractedText={resumeText}
           selectedRole={selectedRole}
+          selectedExperience={selectedExperience}
+          jobDescription={jobDescription}
         />
         <JobDescriptionInput
           value={jobDescription}

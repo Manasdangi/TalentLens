@@ -5,16 +5,18 @@ import { useResumes } from '../../context/ResumeContext';
 import { useAuth } from '../../context/AuthContext';
 import { RESUME_CATEGORIES, MAX_SAVED_RESUMES } from '../../types/resume';
 import type { ResumeCategory } from '../../types/resume';
-import type { RoleType } from '../RoleFilters';
+import { ROLES, EXPERIENCE_LEVELS, type RoleType, type ExperienceLevel } from '../RoleFilters';
 import styles from './ResumeUploader.module.css';
 
 interface ResumeUploaderProps {
   onTextExtracted: (text: string) => void;
   extractedText: string;
   selectedRole?: RoleType;
+  selectedExperience?: ExperienceLevel;
+  jobDescription?: string;
 }
 
-export function ResumeUploader({ onTextExtracted, extractedText, selectedRole }: ResumeUploaderProps) {
+export function ResumeUploader({ onTextExtracted, extractedText, selectedRole, selectedExperience, jobDescription }: ResumeUploaderProps) {
   const { user } = useAuth();
   const { savedResumes, saveResume, selectedResume } = useResumes();
   
@@ -27,6 +29,8 @@ export function ResumeUploader({ onTextExtracted, extractedText, selectedRole }:
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [saveLabel, setSaveLabel] = useState('');
   const [saveCategory, setSaveCategory] = useState<ResumeCategory>('frontend');
+  const [saveRole, setSaveRole] = useState<RoleType>('');
+  const [saveExperience, setSaveExperience] = useState<ExperienceLevel>('');
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
@@ -82,13 +86,15 @@ export function ResumeUploader({ onTextExtracted, extractedText, selectedRole }:
 
   const handleOpenSaveModal = () => {
     setSaveLabel(fileName?.replace('.pdf', '') || 'My Resume');
-    // Set category based on selected role if available
-    if (selectedRole && selectedRole !== '') {
+    // Prefill category, target role, and experience from current form
+    if (selectedRole) {
       const category = selectedRole as ResumeCategory;
       if (RESUME_CATEGORIES.some(cat => cat.value === category)) {
         setSaveCategory(category);
       }
     }
+    setSaveRole(selectedRole ?? '');
+    setSaveExperience(selectedExperience ?? '');
     setShowSaveModal(true);
   };
 
@@ -103,7 +109,13 @@ export function ResumeUploader({ onTextExtracted, extractedText, selectedRole }:
         saveCategory,
         saveLabel.trim(),
         extractedText,
-        fileName
+        fileName,
+        undefined,
+        {
+          targetRole: saveRole || undefined,
+          experienceLevel: saveExperience || undefined,
+          jobDescription: jobDescription?.trim() || undefined,
+        }
       );
       
       if (result) {
@@ -227,6 +239,38 @@ export function ResumeUploader({ onTextExtracted, extractedText, selectedRole }:
                 {RESUME_CATEGORIES.map((cat) => (
                   <option key={cat.value} value={cat.value}>
                     {cat.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className={styles.formGroup}>
+              <label>Target Role</label>
+              <select
+                value={saveRole}
+                onChange={(e) => setSaveRole(e.target.value as RoleType)}
+                className={styles.selectInput}
+              >
+                <option value="">Select Role</option>
+                {ROLES.map((role) => (
+                  <option key={role.value} value={role.value}>
+                    {role.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className={styles.formGroup}>
+              <label>Experience Level</label>
+              <select
+                value={saveExperience}
+                onChange={(e) => setSaveExperience(e.target.value as ExperienceLevel)}
+                className={styles.selectInput}
+              >
+                <option value="">Select Experience</option>
+                {EXPERIENCE_LEVELS.map((exp) => (
+                  <option key={exp.value} value={exp.value}>
+                    {exp.label}
                   </option>
                 ))}
               </select>

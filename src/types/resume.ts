@@ -20,6 +20,12 @@ export interface SavedResume {
   fileName: string;
   createdAt: number;
   updatedAt: number;
+  /** Target role when resume was saved (e.g. frontend, backend). */
+  targetRole?: string;
+  /** Experience level when resume was saved (e.g. junior, senior). */
+  experienceLevel?: string;
+  /** Job description text if any was provided when saving. */
+  jobDescription?: string;
 }
 
 export interface ResumeSlot {

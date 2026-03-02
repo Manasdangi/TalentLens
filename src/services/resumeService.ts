@@ -27,26 +27,33 @@ export async function getUserResumes(userId: string): Promise<SavedResume[]> {
   return data.resumes || [];
 }
 
+export interface SaveResumeOptions {
+  targetRole?: string;
+  experienceLevel?: string;
+  jobDescription?: string;
+}
+
 export async function saveResume(
   userId: string,
   category: ResumeCategory,
   label: string,
   content: string,
   fileName: string,
-  existingId?: string
+  existingId?: string,
+  options?: SaveResumeOptions
 ): Promise<SavedResume> {
   const userDocRef = doc(db, COLLECTION_NAME, userId);
   const existingResumes = await getUserResumes(userId);
-  
+  const { targetRole, experienceLevel, jobDescription } = options ?? {};
+
   const now = Date.now();
-  
+
   if (existingId) {
-    // Update existing resume
     const resumeIndex = existingResumes.findIndex(r => r.id === existingId);
     if (resumeIndex === -1) {
       throw new Error('Resume not found');
     }
-    
+
     const updatedResume: SavedResume = {
       ...existingResumes[resumeIndex],
       category,
@@ -54,23 +61,25 @@ export async function saveResume(
       content,
       fileName,
       updatedAt: now,
+      ...(targetRole !== undefined && { targetRole }),
+      ...(experienceLevel !== undefined && { experienceLevel }),
+      ...(jobDescription !== undefined && { jobDescription }),
     };
-    
+
     existingResumes[resumeIndex] = updatedResume;
-    
+
     await setDoc(userDocRef, {
       userId,
       resumes: existingResumes,
       updatedAt: now,
     });
-    
+
     return updatedResume;
   } else {
-    // Create new resume
     if (existingResumes.length >= MAX_SAVED_RESUMES) {
       throw new Error(`You can only save up to ${MAX_SAVED_RESUMES} resumes. Please delete one to add a new resume.`);
     }
-    
+
     const newResume: SavedResume = {
       id: `${userId}_${now}`,
       userId,
@@ -80,16 +89,19 @@ export async function saveResume(
       fileName,
       createdAt: now,
       updatedAt: now,
+      ...(targetRole !== undefined && { targetRole }),
+      ...(experienceLevel !== undefined && { experienceLevel }),
+      ...(jobDescription !== undefined && { jobDescription }),
     };
-    
+
     const updatedResumes = [...existingResumes, newResume];
-    
+
     await setDoc(userDocRef, {
       userId,
       resumes: updatedResumes,
       updatedAt: now,
     });
-    
+
     return newResume;
   }
 }

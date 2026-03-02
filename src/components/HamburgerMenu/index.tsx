@@ -9,9 +9,10 @@ interface HamburgerMenuProps {
   onLogout: () => Promise<void>;
   onResumeSelect?: (content: string, fileName: string) => void;
   currentResumeText?: string;
+  onScrollToResumeSection?: () => void;
 }
 
-export function HamburgerMenu({ user, onLogin, onLogout, onResumeSelect, currentResumeText }: HamburgerMenuProps) {
+export function HamburgerMenu({ user, onLogin, onLogout, onResumeSelect, currentResumeText, onScrollToResumeSection }: HamburgerMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -32,6 +33,7 @@ export function HamburgerMenu({ user, onLogin, onLogout, onResumeSelect, current
         onLogout={onLogout}
         onResumeSelect={onResumeSelect}
         currentResumeText={currentResumeText}
+        onScrollToResumeSection={onScrollToResumeSection}
       />
     </>
   );

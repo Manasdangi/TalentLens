@@ -6,9 +6,10 @@ import styles from './Header.module.css';
 interface HeaderProps {
   onResumeSelect?: (content: string, fileName: string) => void;
   currentResumeText?: string;
+  onScrollToResumeSection?: () => void;
 }
 
-export function Header({ onResumeSelect, currentResumeText }: HeaderProps) {
+export function Header({ onResumeSelect, currentResumeText, onScrollToResumeSection }: HeaderProps) {
   const { user, login, logout } = useAuth();
 
   return (
@@ -33,6 +34,7 @@ export function Header({ onResumeSelect, currentResumeText }: HeaderProps) {
             onLogout={logout}
             onResumeSelect={onResumeSelect}
             currentResumeText={currentResumeText}
+            onScrollToResumeSection={onScrollToResumeSection}
           />
         </div>
       </div>

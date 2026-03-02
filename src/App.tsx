@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Header } from './components/Header';
-import { InputSection } from './components/InputSection';
+import { InputSection, RESUME_INPUT_SECTION_ID } from './components/InputSection';
 import { AnalysisResults } from './components/AnalysisResults';
 import { Footer } from './components/Footer';
 import { JobOpportunityUploader } from './components/JobOpportunityUploader';
@@ -71,6 +71,10 @@ function App() {
     setResumeText(content);
   };
 
+  const scrollToResumeSection = () => {
+    document.getElementById(RESUME_INPUT_SECTION_ID)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   const handleUserTypeSelect = async (userType: 'candidate' | 'recruiter') => {
     try {
       await setUserType(userType);
@@ -100,6 +104,7 @@ function App() {
         <Header 
           onResumeSelect={handleResumeSelect}
           currentResumeText={resumeText}
+          onScrollToResumeSection={scrollToResumeSection}
         />
         <main className={styles.main}>
           <JobOpportunityUploader />

@@ -1,25 +1,21 @@
 import { useState } from 'react';
-import { 
-  FolderOpen, 
-  Trash2, 
-  FileText, 
-  Check, 
-  Plus,
-  Loader2
-} from 'lucide-react';
+import { FolderOpen, Plus, Loader2 } from 'lucide-react';
 import { useResumes } from '../../context/ResumeContext';
 import { useAuth } from '../../context/AuthContext';
 import { RESUME_CATEGORIES, MAX_SAVED_RESUMES } from '../../types/resume';
 import type { SavedResume } from '../../types/resume';
+import { SavedResumeCard } from './SavedResumeCard';
 import styles from './SavedResumes.module.css';
 
 interface SavedResumesProps {
   onSelectResume: (content: string, fileName: string) => void;
   currentResumeText: string;
   className?: string;
+  /** Called when edit is clicked; if provided, edit icon is shown. Typically scrolls to resume section. */
+  onScrollToResumeSection?: () => void;
 }
 
-export function SavedResumes({ onSelectResume, currentResumeText, className }: SavedResumesProps) {
+export function SavedResumes({ onSelectResume, currentResumeText, className, onScrollToResumeSection }: SavedResumesProps) {
   const { user } = useAuth();
   const { savedResumes, isLoading, error, deleteResume, selectedResume, selectResume } = useResumes();
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -27,6 +23,11 @@ export function SavedResumes({ onSelectResume, currentResumeText, className }: S
   const handleSelectResume = (resume: SavedResume) => {
     selectResume(resume);
     onSelectResume(resume.content, resume.fileName);
+  };
+
+  const handleEditResume = (resume: SavedResume) => {
+    handleSelectResume(resume);
+    onScrollToResumeSection?.();
   };
 
   const handleDeleteResume = async (resumeId: string, e: React.MouseEvent) => {
@@ -109,45 +110,17 @@ export function SavedResumes({ onSelectResume, currentResumeText, className }: S
 
       <div className={styles.grid}>
         {savedResumes.map((resume) => (
-          <div
+          <SavedResumeCard
             key={resume.id}
-            className={`${styles.resumeCard} ${selectedResume?.id === resume.id ? styles.selected : ''}`}
-            onClick={() => handleSelectResume(resume)}
-          >
-            <div 
-              className={styles.categoryBadge}
-              style={{ backgroundColor: getCategoryColor(resume.category) }}
-            >
-              {getCategoryLabel(resume.category)}
-            </div>
-            
-            <div className={styles.cardContent}>
-              <FileText size={24} className={styles.fileIcon} />
-              <span className={styles.label}>{resume.label}</span>
-              <span className={styles.fileName}>{resume.fileName}</span>
-            </div>
-
-            <div className={styles.cardActions}>
-              {selectedResume?.id === resume.id && (
-                <div className={styles.selectedBadge}>
-                  <Check size={14} />
-                  Selected
-                </div>
-              )}
-              <button
-                className={styles.deleteBtn}
-                onClick={(e) => handleDeleteResume(resume.id, e)}
-                disabled={deletingId === resume.id}
-                title="Delete resume"
-              >
-                {deletingId === resume.id ? (
-                  <Loader2 size={14} className={styles.spinner} />
-                ) : (
-                  <Trash2 size={14} />
-                )}
-              </button>
-            </div>
-          </div>
+            resume={resume}
+            isSelected={selectedResume?.id === resume.id}
+            isDeleting={deletingId === resume.id}
+            onSelect={handleSelectResume}
+            onEdit={onScrollToResumeSection ? handleEditResume : undefined}
+            onDelete={handleDeleteResume}
+            getCategoryLabel={getCategoryLabel}
+            getCategoryColor={getCategoryColor}
+          />
         ))}
 
         {Array.from({ length: emptySlots }).map((_, index) => (

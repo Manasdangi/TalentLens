@@ -76,6 +76,8 @@
   cursor: pointer;
   transition: all 0.2s ease;
   overflow: hidden;
+  height: 100px;
+
 }
 
 .resumeCard:hover {
@@ -101,6 +103,45 @@
   letter-spacing: 0.5px;
   color: #fff;
   text-align: center;
+}
+
+.cardTopActions {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.editBtnTopRight,
+.deleteBtnTopRight {
+  background: rgba(0, 0, 0, 0.35);
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  padding: 0.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.editBtnTopRight:hover {
+  background: rgba(99, 102, 241, 0.9);
+  color: #fff;
+}
+
+.deleteBtnTopRight:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.9);
+  color: #fff;
+}
+
+.deleteBtnTopRight:disabled {
+  opacity: 0.8;
+  cursor: not-allowed;
 }
 
 .cardContent {
@@ -150,30 +191,6 @@
   font-size: 0.7rem;
   color: var(--score-good);
   font-weight: 500;
-}
-
-.deleteBtn {
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  padding: 0.35rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 6px;
-  transition: all 0.2s;
-  margin-left: auto;
-}
-
-.deleteBtn:hover:not(:disabled) {
-  background: rgba(239, 68, 68, 0.1);
-  color: var(--score-poor);
-}
-
-.deleteBtn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 .emptySlot {

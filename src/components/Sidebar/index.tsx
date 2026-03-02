@@ -11,10 +11,16 @@ interface SidebarProps {
   onLogout: () => Promise<void>;
   onResumeSelect?: (content: string, fileName: string) => void;
   currentResumeText?: string;
+  onScrollToResumeSection?: () => void;
 }
 
-export function Sidebar({ isOpen, onClose, user, onLogin, onLogout, onResumeSelect, currentResumeText }: SidebarProps) {
+export function Sidebar({ isOpen, onClose, user, onLogin, onLogout, onResumeSelect, currentResumeText, onScrollToResumeSection }: SidebarProps) {
   const { savedResumes } = useResumes();
+
+  const handleScrollToResumeAndClose = () => {
+    onScrollToResumeSection?.();
+    onClose();
+  };
   
   const handleResumeSelect = (content: string, fileName: string) => {
     if (onResumeSelect) {
@@ -44,8 +50,11 @@ export function Sidebar({ isOpen, onClose, user, onLogin, onLogout, onResumeSele
           <div className={styles.userSection}>
             <div className={styles.userInfo}>
               {user.picture ? (
-                <img src={user.picture} alt={user.name} className={styles.avatar} />
-              ) : (
+                <img 
+  src={user.picture}
+  alt={user.name}
+  className={styles.avatar}
+/>              ) : (
                 <div className={styles.avatarPlaceholder}>
                   <User size={24} />
                 </div>
@@ -119,6 +128,7 @@ export function Sidebar({ isOpen, onClose, user, onLogin, onLogout, onResumeSele
               onSelectResume={handleResumeSelect}
               currentResumeText={currentResumeText || ''}
               className="sidebarVariant"
+              onScrollToResumeSection={handleScrollToResumeAndClose}
             />
           </div>
         )}
