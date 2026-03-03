@@ -25,6 +25,7 @@ function App() {
   const [showUserTypeModal, setShowUserTypeModal] = useState(false);
   const [recruiterJobsRefreshTrigger, setRecruiterJobsRefreshTrigger] = useState(0);
   const [showPostJobModal, setShowPostJobModal] = useState(false);
+  const [showJobOpportunitiesScreen, setShowJobOpportunitiesScreen] = useState(false);
 
   const resultsRef = useRef<HTMLDivElement>(null);
 
@@ -84,6 +85,9 @@ function App() {
     document.getElementById(RESUME_INPUT_SECTION_ID)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
+  const openJobOpportunitiesScreen = () => setShowJobOpportunitiesScreen(true);
+  const closeJobOpportunitiesScreen = () => setShowJobOpportunitiesScreen(false);
+
   const handleUserTypeSelect = async (userType: 'candidate' | 'recruiter') => {
     try {
       await setUserType(userType);
@@ -132,8 +136,30 @@ function App() {
         >
           POST NEW JOB
         </button>
+        <button
+          type="button"
+          className={styles.seeLatestOpeningsBtn}
+          onClick={openJobOpportunitiesScreen}
+          aria-label="See latest openings"
+        >
+          See latest openings
+        </button>
         <main className={styles.main}>
-          <JobOpportunitiesList recruiterId={user.id} refreshTrigger={recruiterJobsRefreshTrigger} />
+          {showJobOpportunitiesScreen ? (
+            <div className={styles.jobScreen}>
+              <button
+                type="button"
+                className={styles.backToHomeBtn}
+                onClick={closeJobOpportunitiesScreen}
+                aria-label="Back to home"
+              >
+                ← Back to home
+              </button>
+              <JobOpportunitiesList recruiterId={user.id} refreshTrigger={recruiterJobsRefreshTrigger} />
+            </div>
+          ) : (
+            <p className={styles.recruiterHomeHint}>Post a new job above or click “See latest openings” to view your listings.</p>
+          )}
         </main>
         <Footer />
 
@@ -170,10 +196,31 @@ function App() {
         onScrollToResumeSection={scrollToResumeSection}
       />
 
+      <button
+        type="button"
+        className={styles.seeLatestOpeningsBtn}
+        onClick={openJobOpportunitiesScreen}
+        aria-label="See latest openings"
+      >
+        See latest openings
+      </button>
+
       <main className={styles.main}>
-        <JobOpportunitiesList />
-        
-        <InputSection
+        {showJobOpportunitiesScreen ? (
+          <div className={styles.jobScreen}>
+            <button
+              type="button"
+              className={styles.backToHomeBtn}
+              onClick={closeJobOpportunitiesScreen}
+              aria-label="Back to home"
+            >
+              ← Back to home
+            </button>
+            <JobOpportunitiesList />
+          </div>
+        ) : (
+          <>
+            <InputSection
           resumeText={resumeText}
           jobDescription={jobDescription}
           selectedRole={selectedRole}
@@ -191,6 +238,8 @@ function App() {
           <div ref={resultsRef}>
             <AnalysisResults result={result} />
           </div>
+        )}
+          </>
         )}
       </main>
 
