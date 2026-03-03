@@ -1,18 +1,11 @@
 import { CheckCircle, AlertTriangle, Tag, Search, TrendingUp, Award } from 'lucide-react';
 import type { ScoringResult, ScoreLevel } from '../../utils/llmScorer';
+import { SCORE_LABELS } from '../../constants';
 import styles from './ScoreDisplay.module.css';
 
 interface ScoreDisplayProps {
   result: ScoringResult;
 }
-
-const scoreLabels: Record<ScoreLevel, string> = {
-  poor: 'Poor',
-  average: 'Average',
-  good: 'Good',
-  very_good: 'Very Good',
-  excellent: 'Excellent'
-};
 
 const scoreEmoji: Record<ScoreLevel, string> = {
   poor: '😟',
@@ -30,7 +23,7 @@ export function ScoreDisplay({ result }: ScoreDisplayProps) {
       <div className={styles.scoreHeader}>
         <div className={`${styles.scoreBadge} ${scoreClass}`}>
           <Award size={28} />
-          <span className={styles.scoreLabel}>{scoreLabels[result.score]}</span>
+          <span className={styles.scoreLabel}>{SCORE_LABELS[result.score]}</span>
           <span className={styles.scoreEmoji}>{scoreEmoji[result.score]}</span>
         </div>
         <div className={styles.percentageWrapper}>

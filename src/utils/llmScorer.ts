@@ -1,5 +1,6 @@
 import Groq from "groq-sdk";
-import { ROLES, EXPERIENCE_LEVELS, type RoleType, type ExperienceLevel } from "../components/RoleFilters";
+import type { RoleType, ExperienceLevel } from "../constants";
+import { getRoleLabel, getExperienceLabel } from "./roleExperienceLabels";
 
 const client = new Groq({
   apiKey: import.meta.env.VITE_GROQ_API_KEY,
@@ -70,8 +71,8 @@ export async function scoreResume(
   roleType: RoleType,
   experienceLevel: ExperienceLevel
 ): Promise<ScoringResult> {
-  const role = ROLES.find(r => r.value === roleType)?.label || roleType;
-  const experience = EXPERIENCE_LEVELS.find(e => e.value === experienceLevel)?.label || experienceLevel;
+  const role = getRoleLabel(roleType) || roleType;
+  const experience = getExperienceLabel(experienceLevel) || experienceLevel;
   const hasJobDescription = jobDescription.trim().length > 0;
 
   const userContent = hasJobDescription

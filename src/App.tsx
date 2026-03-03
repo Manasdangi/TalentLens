@@ -1,16 +1,13 @@
-import { useState, useRef, useEffect } from 'react';
-import { Header } from './components/Header';
-import { InputSection, RESUME_INPUT_SECTION_ID } from './components/InputSection';
-import { AnalysisResults } from './components/AnalysisResults';
-import { Footer } from './components/Footer';
-import { JobOpportunityUploader } from './components/JobOpportunityUploader';
-import { JobOpportunitiesList } from './components/JobOpportunitiesList';
+import { useState, useEffect } from 'react';
 import { UserTypeSelection } from './components/UserTypeSelection';
 import { CandidateLoginScreen } from './components/CandidateLoginScreen';
+import { RESUME_INPUT_SECTION_ID } from './components/InputSection';
 import { useAuth } from './context/AuthContext';
 import { scoreResume, type ScoringResult } from './utils/llmScorer';
-import type { RoleType, ExperienceLevel } from './components/RoleFilters';
+import { getErrorMessage } from './utils/getErrorMessage';
+import type { RoleType, ExperienceLevel } from './constants';
 import type { SavedResume } from './types/resume';
+import { CandidateView, RecruiterView } from './views';
 import styles from './App.module.css';
 
 function App() {
@@ -26,18 +23,6 @@ function App() {
   const [recruiterJobsRefreshTrigger, setRecruiterJobsRefreshTrigger] = useState(0);
   const [showPostJobModal, setShowPostJobModal] = useState(false);
   const [showJobOpportunitiesScreen, setShowJobOpportunitiesScreen] = useState(false);
-
-  const resultsRef = useRef<HTMLDivElement>(null);
-
-  // Scroll to results when they're ready
-  useEffect(() => {
-    if (result && resultsRef.current) {
-      resultsRef.current.scrollIntoView({ 
-        behavior: 'smooth',
-        block: 'start'
-      });
-    }
-  }, [result]);
 
   // Show user type selection modal if user is logged in but doesn't have a userType
   useEffect(() => {
@@ -64,8 +49,7 @@ function App() {
       );
       setResult(scoringResult);
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to analyze resume';
-      setError(message);
+      setError(getErrorMessage(err, 'Failed to analyze resume'));
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -92,9 +76,9 @@ function App() {
     try {
       await setUserType(userType);
       setShowUserTypeModal(false);
-    } catch (error) {
-      console.error('Failed to set user type:', error);
-      setError('Failed to set user type. Please try again.');
+    } catch (err) {
+      console.error('Failed to set user type:', err);
+      setError(getErrorMessage(err, 'Failed to set user type. Please try again.'));
     }
   };
 
@@ -119,132 +103,48 @@ function App() {
     );
   }
 
-  // Show recruiter view
   if (user.userType === 'recruiter') {
     return (
-      <div className={styles.app}>
-        <Header 
-          onResumeSelect={handleResumeSelect}
-          currentResumeText={resumeText}
-          onScrollToResumeSection={scrollToResumeSection}
-        />
-        <button
-          type="button"
-          className={styles.postNewJobBtn}
-          onClick={() => setShowPostJobModal(true)}
-          aria-label="Post new job"
-        >
-          POST NEW JOB
-        </button>
-        <button
-          type="button"
-          className={styles.seeLatestOpeningsBtn}
-          onClick={openJobOpportunitiesScreen}
-          aria-label="See latest openings"
-        >
-          See latest openings
-        </button>
-        <main className={styles.main}>
-          {showJobOpportunitiesScreen ? (
-            <div className={styles.jobScreen}>
-              <button
-                type="button"
-                className={styles.backToHomeBtn}
-                onClick={closeJobOpportunitiesScreen}
-                aria-label="Back to home"
-              >
-                ← Back to home
-              </button>
-              <JobOpportunitiesList recruiterId={user.id} refreshTrigger={recruiterJobsRefreshTrigger} />
-            </div>
-          ) : (
-            <p className={styles.recruiterHomeHint}>Post a new job above or click “See latest openings” to view your listings.</p>
-          )}
-        </main>
-        <Footer />
-
-        {showPostJobModal && (
-          <div className={styles.modalOverlay} onClick={() => setShowPostJobModal(false)}>
-            <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-              <button
-                type="button"
-                className={styles.modalCloseBtn}
-                onClick={() => setShowPostJobModal(false)}
-                aria-label="Close"
-              >
-                ×
-              </button>
-              <JobOpportunityUploader
-                onJobPosted={() => {
-                  setRecruiterJobsRefreshTrigger(t => t + 1);
-                  setShowPostJobModal(false);
-                }}
-              />
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  // Show candidate view (default)
-  return (
-    <div className={styles.app}>
-      <Header 
+      <RecruiterView
         onResumeSelect={handleResumeSelect}
         currentResumeText={resumeText}
         onScrollToResumeSection={scrollToResumeSection}
+        onOpenJobOpportunities={openJobOpportunitiesScreen}
+        showJobOpportunitiesScreen={showJobOpportunitiesScreen}
+        onCloseJobOpportunitiesScreen={closeJobOpportunitiesScreen}
+        recruiterId={user.id}
+        recruiterJobsRefreshTrigger={recruiterJobsRefreshTrigger}
+        showPostJobModal={showPostJobModal}
+        onOpenPostJobModal={() => setShowPostJobModal(true)}
+        onClosePostJobModal={() => setShowPostJobModal(false)}
+        onJobPosted={() => {
+          setRecruiterJobsRefreshTrigger((t) => t + 1);
+          setShowPostJobModal(false);
+        }}
       />
+    );
+  }
 
-      <button
-        type="button"
-        className={styles.seeLatestOpeningsBtn}
-        onClick={openJobOpportunitiesScreen}
-        aria-label="See latest openings"
-      >
-        See latest openings
-      </button>
-
-      <main className={styles.main}>
-        {showJobOpportunitiesScreen ? (
-          <div className={styles.jobScreen}>
-            <button
-              type="button"
-              className={styles.backToHomeBtn}
-              onClick={closeJobOpportunitiesScreen}
-              aria-label="Back to home"
-            >
-              ← Back to home
-            </button>
-            <JobOpportunitiesList />
-          </div>
-        ) : (
-          <>
-            <InputSection
-          resumeText={resumeText}
-          jobDescription={jobDescription}
-          selectedRole={selectedRole}
-          selectedExperience={selectedExperience}
-          isLoading={isLoading}
-          error={error}
-          onResumeChange={setResumeText}
-          onJobDescriptionChange={setJobDescription}
-          onRoleChange={setSelectedRole}
-          onExperienceChange={setSelectedExperience}
-          onAnalyze={handleAnalyze}
-        />
-
-        {result && (
-          <div ref={resultsRef}>
-            <AnalysisResults result={result} />
-          </div>
-        )}
-          </>
-        )}
-      </main>
-
-      <Footer />
-    </div>
+  return (
+    <CandidateView
+      resumeText={resumeText}
+      jobDescription={jobDescription}
+      selectedRole={selectedRole}
+      selectedExperience={selectedExperience}
+      result={result}
+      isLoading={isLoading}
+      error={error}
+      onResumeSelect={handleResumeSelect}
+      onResumeChange={setResumeText}
+      onJobDescriptionChange={setJobDescription}
+      onRoleChange={setSelectedRole}
+      onExperienceChange={setSelectedExperience}
+      onAnalyze={handleAnalyze}
+      scrollToResumeSection={scrollToResumeSection}
+      showJobOpportunitiesScreen={showJobOpportunitiesScreen}
+      onOpenJobOpportunities={openJobOpportunitiesScreen}
+      onCloseJobOpportunitiesScreen={closeJobOpportunitiesScreen}
+    />
   );
 }
 

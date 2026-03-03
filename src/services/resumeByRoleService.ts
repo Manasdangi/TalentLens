@@ -8,13 +8,10 @@ import {
 import { db } from '../config/firebase';
 import type { SavedResume } from '../types/resume';
 import type { ResumeByRoleDoc } from '../types/resumeByRole';
-import { ROLES } from '../components/RoleFilters';
+import { ROLE_IDS, ROLES } from '../constants';
 
 const COLLECTION_NAME = 'ResumeByRole';
 const RESUMES_SUBCOLLECTION = 'resumes';
-
-/** Role document IDs in Firestore (ResumeByRole/{roleId}) */
-const ROLE_IDS: string[] = ROLES.map((r) => r.value);
 
 /**
  * Resolve job role (value or display label) to Firestore role document ID.

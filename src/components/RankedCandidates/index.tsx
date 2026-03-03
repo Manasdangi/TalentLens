@@ -2,13 +2,13 @@ import { useState } from 'react';
 import { Users, Loader2, ChevronDown, ChevronUp, Award, Mail } from 'lucide-react';
 import { getResumesByRole, getRoleIdForQuery } from '../../services/resumeByRoleService';
 import { scoreResume } from '../../utils/llmScorer';
+import { getErrorMessage } from '../../utils/getErrorMessage';
 import type { JobOpportunity } from '../../types/jobOpportunity';
 import type { ResumeByRoleDoc } from '../../types/resumeByRole';
 import type { ScoringResult } from '../../utils/llmScorer';
-import type { RoleType, ExperienceLevel } from '../RoleFilters';
+import type { RoleType, ExperienceLevel } from '../../constants';
+import { SCORE_LABELS, MAX_CANDIDATES_TO_RANK } from '../../constants';
 import styles from './RankedCandidates.module.css';
-
-const MAX_CANDIDATES_TO_RANK = 20;
 
 interface RankedEntry {
   resume: ResumeByRoleDoc;
@@ -18,14 +18,6 @@ interface RankedEntry {
 interface RankedCandidatesProps {
   job: JobOpportunity;
 }
-
-const scoreLabels: Record<string, string> = {
-  poor: 'Poor',
-  average: 'Average',
-  good: 'Good',
-  very_good: 'Very Good',
-  excellent: 'Excellent',
-};
 
 export function RankedCandidates({ job }: RankedCandidatesProps) {
   const [ranked, setRanked] = useState<RankedEntry[] | null>(null);
@@ -72,8 +64,7 @@ export function RankedCandidates({ job }: RankedCandidatesProps) {
       results.sort((a, b) => b.result.percentage - a.result.percentage);
       setRanked(results);
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to rank candidates';
-      setError(message);
+      setError(getErrorMessage(err, 'Failed to rank candidates'));
       console.error('Rank candidates error:', err);
     } finally {
       setIsRanking(false);
@@ -168,7 +159,7 @@ export function RankedCandidates({ job }: RankedCandidatesProps) {
                   <div className={styles.cardDetails}>
                     <p className={styles.summary}>{entry.result.summary}</p>
                     <p className={styles.scoreLabel}>
-                      {scoreLabels[entry.result.score] || entry.result.score}
+                      {SCORE_LABELS[entry.result.score] || entry.result.score}
                     </p>
                     <div className={styles.detailGrid}>
                       <div>

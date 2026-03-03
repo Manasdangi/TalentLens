@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Briefcase, MapPin, DollarSign, Clock, ExternalLink, Loader2, ChevronDown, ChevronUp, Mail } from 'lucide-react';
 import { getJobOpportunities } from '../../services/jobOpportunityService';
-import { ROLES, EXPERIENCE_LEVELS } from '../RoleFilters';
+import { getRoleLabel, getExperienceLabel } from '../../utils/roleExperienceLabels';
+import { getErrorMessage } from '../../utils/getErrorMessage';
 import { RankedCandidates } from '../RankedCandidates';
 import type { JobOpportunity } from '../../types/jobOpportunity';
 import styles from './JobOpportunitiesList.module.css';
@@ -30,8 +31,7 @@ export function JobOpportunitiesList({ recruiterId, refreshTrigger }: JobOpportu
       const jobList = await getJobOpportunities(recruiterId);
       setJobs(jobList);
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to load job opportunities';
-      setError(message);
+      setError(getErrorMessage(err, 'Failed to load job opportunities'));
       console.error('Failed to load jobs:', err);
     } finally {
       setIsLoading(false);
@@ -40,14 +40,6 @@ export function JobOpportunitiesList({ recruiterId, refreshTrigger }: JobOpportu
 
   const toggleExpand = (jobId: string) => {
     setExpandedJobId(expandedJobId === jobId ? null : jobId);
-  };
-
-  const getRoleLabel = (roleValue: string) => {
-    return ROLES.find(r => r.value === roleValue)?.label || roleValue;
-  };
-
-  const getExperienceLabel = (expValue: string) => {
-    return EXPERIENCE_LEVELS.find(e => e.value === expValue)?.label || expValue;
   };
 
   const formatDate = (timestamp: number) => {

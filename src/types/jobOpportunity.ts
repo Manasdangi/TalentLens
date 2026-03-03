@@ -1,4 +1,4 @@
-import type { RoleType, ExperienceLevel } from '../components/RoleFilters';
+import type { RoleType, ExperienceLevel } from '../constants';
 
 export interface JobOpportunity {
   id: string;

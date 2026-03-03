@@ -1,4 +1,6 @@
-export type ResumeCategory = 
+import { ROLES } from '../constants';
+
+export type ResumeCategory =
   | 'frontend'
   | 'backend'
   | 'fullstack'
@@ -33,18 +35,10 @@ export interface ResumeSlot {
   resume: SavedResume | null;
 }
 
-export const RESUME_CATEGORIES: { value: ResumeCategory; label: string }[] = [
-  { value: 'frontend', label: 'Frontend' },
-  { value: 'backend', label: 'Backend' },
-  { value: 'fullstack', label: 'Full Stack' },
-  { value: 'react_native', label: 'React Native' },
-  { value: 'ios', label: 'iOS' },
-  { value: 'android', label: 'Android' },
-  { value: 'flutter', label: 'Flutter' },
-  { value: 'devops', label: 'DevOps' },
-  { value: 'data', label: 'Data' },
-  { value: 'ml', label: 'ML' },
-  { value: 'other', label: 'Other' },
-];
+/** Resume category options derived from shared ROLES (same value/label as role dropdown). */
+export const RESUME_CATEGORIES: { value: ResumeCategory; label: string }[] = ROLES.map((r) => ({
+  value: r.value as ResumeCategory,
+  label: r.label,
+}));
 
-export const MAX_SAVED_RESUMES = 4;
+export { MAX_SAVED_RESUMES } from '../constants';

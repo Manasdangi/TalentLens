@@ -13,6 +13,7 @@ import {
   saveResume as saveResumeToDb,
   deleteResume as deleteResumeFromDb,
 } from '../services/resumeService';
+import { getErrorMessage } from '../utils/getErrorMessage';
 
 interface ResumeContextType {
   savedResumes: SavedResume[];
@@ -54,7 +55,7 @@ export function ResumeProvider({ children }: { children: ReactNode }) {
       const resumes = await getUserResumes(user.id);
       setSavedResumes(resumes);
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to load resumes';
+      const message = getErrorMessage(err, 'Failed to load resumes');
       setError(message);
       console.error('Failed to load resumes:', err);
     } finally {
@@ -95,7 +96,7 @@ export function ResumeProvider({ children }: { children: ReactNode }) {
         await refreshResumes();
         return savedResume;
       } catch (err) {
-        const message = err instanceof Error ? err.message : 'Failed to save resume';
+        const message = getErrorMessage(err, 'Failed to save resume');
         setError(message);
         console.error('Failed to save resume:', err);
         return null;
@@ -120,7 +121,7 @@ export function ResumeProvider({ children }: { children: ReactNode }) {
         }
         await refreshResumes();
       } catch (err) {
-        const message = err instanceof Error ? err.message : 'Failed to delete resume';
+        const message = getErrorMessage(err, 'Failed to delete resume');
         setError(message);
         console.error('Failed to delete resume:', err);
       }

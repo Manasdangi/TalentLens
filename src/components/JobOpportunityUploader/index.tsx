@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Briefcase, Plus, Loader2, CheckCircle } from 'lucide-react';
 import { RoleFilters, type RoleType, type ExperienceLevel } from '../RoleFilters';
 import { createJobOpportunity } from '../../services/jobOpportunityService';
+import { getErrorMessage } from '../../utils/getErrorMessage';
 import { useAuth } from '../../context/AuthContext';
 import type { JobOpportunityFormData } from '../../types/jobOpportunity';
 import styles from './JobOpportunityUploader.module.css';
@@ -77,7 +78,7 @@ export function JobOpportunityUploader({ onJobPosted }: JobOpportunityUploaderPr
       // Reset success message after 3 seconds
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to create job opportunity';
+      const message = getErrorMessage(err, 'Failed to create job opportunity');
       setError(message);
       console.error('Failed to create job opportunity:', err);
     } finally {

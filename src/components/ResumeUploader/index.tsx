@@ -6,6 +6,7 @@ import { useAuth } from '../../context/AuthContext';
 import { MAX_SAVED_RESUMES } from '../../types/resume';
 import type { ResumeCategory } from '../../types/resume';
 import { ROLES, EXPERIENCE_LEVELS, type RoleType, type ExperienceLevel } from '../RoleFilters';
+import { getErrorMessage } from '../../utils/getErrorMessage';
 import styles from './ResumeUploader.module.css';
 
 interface ResumeUploaderProps {
@@ -117,7 +118,7 @@ export function ResumeUploader({ onTextExtracted, extractedText, selectedRole, s
         setSaveSuccess(true);
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to save resume';
+      const message = getErrorMessage(err, 'Failed to save resume');
       setError(message);
     } finally {
       setIsSaving(false);
