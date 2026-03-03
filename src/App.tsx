@@ -7,7 +7,7 @@ import { scoreResume, type ScoringResult } from './utils/llmScorer';
 import { getErrorMessage } from './utils/getErrorMessage';
 import type { RoleType, ExperienceLevel } from './constants';
 import type { SavedResume } from './types/resume';
-import { CandidateView, RecruiterView } from './views';
+import { CandidateView, RecruiterView } from './screens';
 import styles from './App.module.css';
 
 function App() {
