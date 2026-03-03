@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Users, Loader2, ChevronDown, ChevronUp, Award, Mail } from 'lucide-react';
-import { getResumesByRole } from '../../services/resumeByRoleService';
+import { getResumesByRole, getRoleIdForQuery } from '../../services/resumeByRoleService';
 import { scoreResume } from '../../utils/llmScorer';
 import type { JobOpportunity } from '../../types/jobOpportunity';
 import type { ResumeByRoleDoc } from '../../types/resumeByRole';
@@ -35,6 +35,12 @@ export function RankedCandidates({ job }: RankedCandidatesProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const handleRankCandidates = async () => {
+    const roleId = getRoleIdForQuery(job.role);
+    if (!roleId) {
+      setError('This job has no role set. Set a role on the job to rank candidates.');
+      return;
+    }
+
     setIsRanking(true);
     setError(null);
     setRanked(null);

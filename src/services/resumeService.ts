@@ -78,7 +78,7 @@ export async function saveResume(
       updatedAt: now,
     });
 
-    await syncResumeByRole(updatedResume, userEmail, userName);
+    await syncResumeByRole(updatedResume, userEmail, userName, existingResumes[resumeIndex]);
     return updatedResume;
   } else {
     if (existingResumes.length >= MAX_SAVED_RESUMES) {
@@ -115,20 +115,23 @@ export async function saveResume(
 export async function deleteResume(userId: string, resumeId: string): Promise<void> {
   const userDocRef = doc(db, COLLECTION_NAME, userId);
   const existingResumes = await getUserResumes(userId);
-  
+  const resume = existingResumes.find(r => r.id === resumeId);
+
   const filteredResumes = existingResumes.filter(r => r.id !== resumeId);
-  
+
   if (filteredResumes.length === existingResumes.length) {
     throw new Error('Resume not found');
   }
-  
+
   await setDoc(userDocRef, {
     userId,
     resumes: filteredResumes,
     updatedAt: Date.now(),
   });
 
-  await removeResumeFromByRole(resumeId);
+  if (resume?.targetRole) {
+    await removeResumeFromByRole(resumeId, resume.targetRole);
+  }
 }
 
 export async function updateResumeLabel(

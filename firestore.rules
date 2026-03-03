@@ -22,9 +22,9 @@ service cloud.firestore {
       allow update, delete: if request.auth != null && resource.data.recruiterId == request.auth.uid;
     }
 
-    // ResumeByRole: index of resumes by target role for recruiter candidate ranking
+    // ResumeByRole: resumes indexed by role doc (e.g. ResumeByRole/frontend/resumes/{resumeId})
     // Candidates write their own; recruiters can read all (to rank by role)
-    match /ResumeByRole/{resumeId} {
+    match /ResumeByRole/{roleId}/resumes/{resumeId} {
       allow read: if request.auth != null && get(/databases/$(database)/documents/Users/$(request.auth.uid)).data.userType == 'recruiter';
       allow create, update: if request.auth != null && request.resource.data.userId == request.auth.uid;
       allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
