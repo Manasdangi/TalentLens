@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Briefcase, MapPin, DollarSign, Clock, ExternalLink, Loader2, ChevronDown, ChevronUp, Mail } from 'lucide-react';
 import { getJobOpportunities } from '../../services/jobOpportunityService';
 import { ROLES, EXPERIENCE_LEVELS } from '../RoleFilters';
+import { RankedCandidates } from '../RankedCandidates';
 import type { JobOpportunity } from '../../types/jobOpportunity';
 import styles from './JobOpportunitiesList.module.css';
 
@@ -199,6 +200,10 @@ export function JobOpportunitiesList({ recruiterId, refreshTrigger }: JobOpportu
                         Apply Now
                       </a>
                     </div>
+                  )}
+
+                  {recruiterId && (
+                    <RankedCandidates job={job} />
                   )}
                 </div>
               )}

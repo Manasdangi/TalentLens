@@ -24,7 +24,7 @@ interface ResumeContextType {
     content: string,
     fileName: string,
     existingId?: string,
-    options?: { targetRole?: string; experienceLevel?: string; jobDescription?: string }
+    options?: { targetRole?: string; experienceLevel?: string; jobDescription?: string; userEmail?: string; userName?: string }
   ) => Promise<SavedResume | null>;
   deleteResume: (resumeId: string) => Promise<void>;
   refreshResumes: () => Promise<void>;
@@ -73,7 +73,7 @@ export function ResumeProvider({ children }: { children: ReactNode }) {
       content: string,
       fileName: string,
       existingId?: string,
-      options?: { targetRole?: string; experienceLevel?: string; jobDescription?: string }
+      options?: { targetRole?: string; experienceLevel?: string; jobDescription?: string; userEmail?: string; userName?: string }
     ): Promise<SavedResume | null> => {
       if (!user) {
         setError('Please log in to save resumes');
@@ -90,7 +90,7 @@ export function ResumeProvider({ children }: { children: ReactNode }) {
           content,
           fileName,
           existingId,
-          options
+          { ...options, userEmail: user.email, userName: user.name }
         );
         await refreshResumes();
         return savedResume;

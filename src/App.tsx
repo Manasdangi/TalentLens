@@ -6,6 +6,7 @@ import { Footer } from './components/Footer';
 import { JobOpportunityUploader } from './components/JobOpportunityUploader';
 import { JobOpportunitiesList } from './components/JobOpportunitiesList';
 import { UserTypeSelection } from './components/UserTypeSelection';
+import { CandidateLoginScreen } from './components/CandidateLoginScreen';
 import { useAuth } from './context/AuthContext';
 import { scoreResume, type ScoringResult } from './utils/llmScorer';
 import type { RoleType, ExperienceLevel } from './components/RoleFilters';
@@ -93,8 +94,17 @@ function App() {
     }
   };
 
+  // Show login screen when candidate is not logged in
+  if (!user) {
+    return (
+      <div className={styles.app}>
+        <CandidateLoginScreen />
+      </div>
+    );
+  }
+
   // Show user type selection modal
-  if (showUserTypeModal && user) {
+  if (showUserTypeModal) {
     return (
       <div className={styles.app}>
         <UserTypeSelection
@@ -106,7 +116,7 @@ function App() {
   }
 
   // Show recruiter view
-  if (user?.userType === 'recruiter') {
+  if (user.userType === 'recruiter') {
     return (
       <div className={styles.app}>
         <Header 

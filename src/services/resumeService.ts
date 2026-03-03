@@ -6,6 +6,7 @@ import {
 import { db } from '../config/firebase';
 import type { SavedResume, ResumeCategory } from '../types/resume';
 import { MAX_SAVED_RESUMES } from '../types/resume';
+import { syncResumeByRole, removeResumeFromByRole } from './resumeByRoleService';
 
 const COLLECTION_NAME = 'Resumes';
 
@@ -31,6 +32,9 @@ export interface SaveResumeOptions {
   targetRole?: string;
   experienceLevel?: string;
   jobDescription?: string;
+  /** For recruiter ranking display when resume is indexed by role */
+  userEmail?: string;
+  userName?: string;
 }
 
 export async function saveResume(
@@ -44,7 +48,7 @@ export async function saveResume(
 ): Promise<SavedResume> {
   const userDocRef = doc(db, COLLECTION_NAME, userId);
   const existingResumes = await getUserResumes(userId);
-  const { targetRole, experienceLevel, jobDescription } = options ?? {};
+  const { targetRole, experienceLevel, jobDescription, userEmail, userName } = options ?? {};
 
   const now = Date.now();
 
@@ -74,6 +78,7 @@ export async function saveResume(
       updatedAt: now,
     });
 
+    await syncResumeByRole(updatedResume, userEmail, userName);
     return updatedResume;
   } else {
     if (existingResumes.length >= MAX_SAVED_RESUMES) {
@@ -102,6 +107,7 @@ export async function saveResume(
       updatedAt: now,
     });
 
+    await syncResumeByRole(newResume, userEmail, userName);
     return newResume;
   }
 }
@@ -121,6 +127,8 @@ export async function deleteResume(userId: string, resumeId: string): Promise<vo
     resumes: filteredResumes,
     updatedAt: Date.now(),
   });
+
+  await removeResumeFromByRole(resumeId);
 }
 
 export async function updateResumeLabel(
