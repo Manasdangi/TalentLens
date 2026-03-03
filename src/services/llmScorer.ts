@@ -1,6 +1,6 @@
 import Groq from "groq-sdk";
 import type { RoleType, ExperienceLevel } from "../constants";
-import { getRoleLabel, getExperienceLabel } from "./roleExperienceLabels";
+import { getRoleLabel, getExperienceLabel } from "../utils/roleExperienceLabels";
 
 const client = new Groq({
   apiKey: import.meta.env.VITE_GROQ_API_KEY,

@@ -1,5 +1,5 @@
 import { CheckCircle, AlertTriangle, Tag, Search, TrendingUp, Award } from 'lucide-react';
-import type { ScoringResult, ScoreLevel } from '../../utils/llmScorer';
+import type { ScoringResult, ScoreLevel } from '../../services/llmScorer';
 import { SCORE_LABELS } from '../../constants';
 import styles from './ScoreDisplay.module.css';
 

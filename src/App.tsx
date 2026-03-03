@@ -3,7 +3,7 @@ import { UserTypeSelection } from './components/UserTypeSelection';
 import { CandidateLoginScreen } from './components/CandidateLoginScreen';
 import { RESUME_INPUT_SECTION_ID } from './components/InputSection';
 import { useAuth } from './context/AppStore';
-import { scoreResume, type ScoringResult } from './utils/llmScorer';
+import { scoreResume, type ScoringResult } from './services/llmScorer';
 import { getErrorMessage } from './utils/getErrorMessage';
 import type { RoleType, ExperienceLevel } from './constants';
 import type { SavedResume } from './types/resume';

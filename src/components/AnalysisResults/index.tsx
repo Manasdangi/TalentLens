@@ -1,5 +1,5 @@
 import { ScoreDisplay } from '../ScoreDisplay';
-import type { ScoringResult } from '../../utils/llmScorer';
+import type { ScoringResult } from '../../services/llmScorer';
 import styles from './AnalysisResults.module.css';
 
 interface AnalysisResultsProps {

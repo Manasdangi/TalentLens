@@ -5,7 +5,7 @@ import { AnalysisResults } from '../components/AnalysisResults';
 import { JobOpportunitiesScreen } from './JobOpportunitiesScreen';
 import { Footer } from '../components/Footer';
 import type { SavedResume } from '../types/resume';
-import type { ScoringResult } from '../utils/llmScorer';
+import type { ScoringResult } from '../services/llmScorer';
 import type { RoleType, ExperienceLevel } from '../constants';
 import styles from '../App.module.css';
 

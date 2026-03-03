@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Users, Loader2, ChevronDown, ChevronUp, Award, Mail } from 'lucide-react';
 import { getResumesByRole, getRoleIdForQuery } from '../../services/resumeByRoleService';
-import { scoreResume } from '../../utils/llmScorer';
+import { scoreResume } from '../../services/llmScorer';
 import { getErrorMessage } from '../../utils/getErrorMessage';
 import type { JobOpportunity } from '../../types/jobOpportunity';
 import type { ResumeByRoleDoc } from '../../types/resumeByRole';
-import type { ScoringResult } from '../../utils/llmScorer';
+import type { ScoringResult } from '../../services/llmScorer';
 import type { RoleType, ExperienceLevel } from '../../constants';
 import { SCORE_LABELS, MAX_CANDIDATES_TO_RANK } from '../../constants';
 import styles from './RankedCandidates.module.css';
