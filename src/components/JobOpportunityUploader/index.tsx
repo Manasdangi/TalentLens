@@ -1,47 +1,70 @@
 import { useState, useEffect } from 'react';
 import { Briefcase, Plus, Loader2, CheckCircle } from 'lucide-react';
 import { RoleFilters, type RoleType, type ExperienceLevel } from '../RoleFilters';
-import { createJobOpportunity } from '../../services/jobOpportunityService';
+import { createJobOpportunity, updateJobOpportunity } from '../../services/jobOpportunityService';
 import { getErrorMessage } from '../../utils/getErrorMessage';
 import { useAuth } from '../../context/AuthContext';
-import type { JobOpportunityFormData } from '../../types/jobOpportunity';
+import type { JobOpportunity, JobOpportunityFormData } from '../../types/jobOpportunity';
 import styles from './JobOpportunityUploader.module.css';
 
+const emptyFormData: JobOpportunityFormData = {
+  recruiterEmail: '',
+  title: '',
+  company: '',
+  description: '',
+  role: '',
+  experienceLevel: '',
+  location: '',
+  salaryRange: '',
+  requirements: '',
+  benefits: '',
+  applicationLink: '',
+};
+
+function jobToFormData(job: JobOpportunity): JobOpportunityFormData {
+  return {
+    recruiterEmail: job.recruiterEmail ?? '',
+    title: job.title,
+    company: job.company,
+    description: job.description,
+    role: job.role,
+    experienceLevel: job.experienceLevel,
+    location: job.location ?? '',
+    salaryRange: job.salaryRange ?? '',
+    requirements: job.requirements?.join('\n') ?? '',
+    benefits: job.benefits?.join('\n') ?? '',
+    applicationLink: job.applicationLink ?? '',
+  };
+}
+
 interface JobOpportunityUploaderProps {
-  /** Called after a job is successfully posted (e.g. to refresh recruiter's job list). */
+  /** When set, form is in edit mode for this job. */
+  existingJob?: JobOpportunity | null;
+  /** Called after a job is successfully posted or updated (e.g. to refresh list and close modal). */
   onJobPosted?: () => void;
 }
 
-export function JobOpportunityUploader({ onJobPosted }: JobOpportunityUploaderProps = {}) {
+export function JobOpportunityUploader({ existingJob, onJobPosted }: JobOpportunityUploaderProps = {}) {
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
-  const [formData, setFormData] = useState<JobOpportunityFormData>({
-    recruiterEmail: '',
-    title: '',
-    company: '',
-    description: '',
-    role: '',
-    experienceLevel: '',
-    location: '',
-    salaryRange: '',
-    requirements: '',
-    benefits: '',
-    applicationLink: '',
-  });
+  const [formData, setFormData] = useState<JobOpportunityFormData>(emptyFormData);
 
-  // Prefill recruiter email when user is available
+  const isEditMode = !!existingJob;
+
+  // Prefill from existing job when in edit mode; otherwise reset form (with recruiter email if available)
   useEffect(() => {
-    if (user?.email) {
-      setFormData(prev => ({ ...prev, recruiterEmail: user.email }));
+    if (existingJob) {
+      setFormData(jobToFormData(existingJob));
+    } else {
+      setFormData(user?.email ? { ...emptyFormData, recruiterEmail: user.email } : emptyFormData);
     }
-  }, [user?.email]);
+  }, [existingJob?.id, user?.email]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!user || user.userType !== 'recruiter') {
       setError('Only recruiters can post job opportunities');
       return;
@@ -57,30 +80,22 @@ export function JobOpportunityUploader({ onJobPosted }: JobOpportunityUploaderPr
     setSuccess(false);
 
     try {
-      await createJobOpportunity(user.id, formData);
-      setSuccess(true);
-      onJobPosted?.();
-      // Reset form (keep recruiter email)
-      setFormData(prev => ({
-        ...prev,
-        title: '',
-        company: '',
-        description: '',
-        role: '',
-        experienceLevel: '',
-        location: '',
-        salaryRange: '',
-        requirements: '',
-        benefits: '',
-        applicationLink: '',
-      }));
-      
-      // Reset success message after 3 seconds
-      setTimeout(() => setSuccess(false), 3000);
+      if (isEditMode && existingJob) {
+        await updateJobOpportunity(existingJob.id, formData);
+        setSuccess(true);
+        onJobPosted?.();
+        setTimeout(() => setSuccess(false), 2000);
+      } else {
+        await createJobOpportunity(user.id, formData);
+        setSuccess(true);
+        onJobPosted?.();
+        setFormData(prev => ({ ...prev, ...emptyFormData, recruiterEmail: prev.recruiterEmail }));
+        setTimeout(() => setSuccess(false), 3000);
+      }
     } catch (err) {
-      const message = getErrorMessage(err, 'Failed to create job opportunity');
+      const message = getErrorMessage(err, isEditMode ? 'Failed to update job' : 'Failed to create job opportunity');
       setError(message);
-      console.error('Failed to create job opportunity:', err);
+      console.error(isEditMode ? 'Failed to update job:' : 'Failed to create job opportunity:', err);
     } finally {
       setIsSubmitting(false);
     }
@@ -94,7 +109,7 @@ export function JobOpportunityUploader({ onJobPosted }: JobOpportunityUploaderPr
     <div className={styles.container}>
       <div className={styles.header}>
         <Briefcase size={24} />
-        <h2>Post Job Opportunity</h2>
+        <h2>{isEditMode ? 'Edit Job' : 'Post Job Opportunity'}</h2>
       </div>
 
       <form onSubmit={handleSubmit} className={styles.form}>
@@ -222,7 +237,7 @@ export function JobOpportunityUploader({ onJobPosted }: JobOpportunityUploaderPr
         {success && (
           <div className={styles.success}>
             <CheckCircle size={16} />
-            Job opportunity posted successfully!
+            {isEditMode ? 'Job updated successfully!' : 'Job opportunity posted successfully!'}
           </div>
         )}
 
@@ -234,12 +249,12 @@ export function JobOpportunityUploader({ onJobPosted }: JobOpportunityUploaderPr
           {isSubmitting ? (
             <>
               <Loader2 size={16} className={styles.spinner} />
-              Posting...
+              {isEditMode ? 'Saving...' : 'Posting...'}
             </>
           ) : (
             <>
-              <Plus size={16} />
-              Post Job Opportunity
+              {isEditMode ? null : <Plus size={16} />}
+              {isEditMode ? 'Save changes' : 'Post Job Opportunity'}
             </>
           )}
         </button>

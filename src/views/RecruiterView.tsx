@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import { Header } from '../components/Header';
 import { JobOpportunityUploader } from '../components/JobOpportunityUploader';
 import { JobOpportunitiesScreen } from './JobOpportunitiesScreen';
 import { Modal } from '../components/ui/Modal';
 import { Footer } from '../components/Footer';
 import type { SavedResume } from '../types/resume';
+import type { JobOpportunity } from '../types/jobOpportunity';
 import styles from '../App.module.css';
 
 interface RecruiterViewProps {
@@ -35,6 +37,19 @@ export function RecruiterView({
   onClosePostJobModal,
   onJobPosted,
 }: RecruiterViewProps) {
+  const [jobToEdit, setJobToEdit] = useState<JobOpportunity | null>(null);
+  const isJobModalOpen = showPostJobModal || !!jobToEdit;
+
+  const closeJobModal = () => {
+    onClosePostJobModal();
+    setJobToEdit(null);
+  };
+
+  const handleJobPosted = () => {
+    onJobPosted();
+    closeJobModal();
+  };
+
   return (
     <div className={styles.app}>
       <Header
@@ -50,33 +65,37 @@ export function RecruiterView({
       >
         POST NEW JOB
       </button>
-      <div className={styles.seeLatestOpeningsBar}>
-        <button
-          type="button"
-          className={styles.seeLatestOpeningsBtn}
-          onClick={onOpenJobOpportunities}
-          aria-label="See latest openings"
-        >
-          See latest openings
-        </button>
-      </div>
       <main className={styles.main}>
         {showJobOpportunitiesScreen ? (
           <JobOpportunitiesScreen
             onBack={onCloseJobOpportunitiesScreen}
             recruiterId={recruiterId}
             refreshTrigger={recruiterJobsRefreshTrigger}
+            onEditJob={setJobToEdit}
           />
         ) : (
-          <p className={styles.recruiterHomeHint}>
-            Post a new job above or click “See latest openings” to view your listings.
-          </p>
+          <>
+            <p className={styles.recruiterHomeHint}>
+              Post a new job above or view your listings below.
+            </p>
+            <button
+              type="button"
+              className={styles.viewListingsBtn}
+              onClick={onOpenJobOpportunities}
+              aria-label="View my posted jobs"
+            >
+              View my listings
+            </button>
+          </>
         )}
       </main>
       <Footer />
 
-      <Modal isOpen={showPostJobModal} onClose={onClosePostJobModal}>
-        <JobOpportunityUploader onJobPosted={onJobPosted} />
+      <Modal isOpen={isJobModalOpen} onClose={closeJobModal}>
+        <JobOpportunityUploader
+          existingJob={jobToEdit ?? undefined}
+          onJobPosted={handleJobPosted}
+        />
       </Modal>
     </div>
   );

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Briefcase, MapPin, DollarSign, Clock, ExternalLink, Loader2, ChevronDown, ChevronUp, Mail } from 'lucide-react';
-import { getJobOpportunities } from '../../services/jobOpportunityService';
+import { Briefcase, MapPin, DollarSign, Clock, ExternalLink, Loader2, ChevronDown, ChevronUp, Mail, Pencil, Trash2 } from 'lucide-react';
+import { getJobOpportunities, deleteJobOpportunity } from '../../services/jobOpportunityService';
 import { getRoleLabel, getExperienceLabel } from '../../utils/roleExperienceLabels';
 import { getErrorMessage } from '../../utils/getErrorMessage';
 import { RankedCandidates } from '../RankedCandidates';
@@ -12,13 +12,16 @@ interface JobOpportunitiesListProps {
   recruiterId?: string;
   /** Increment to refetch the list (e.g. after posting a new job). */
   refreshTrigger?: number;
+  /** When set (with recruiterId), list shows Edit/Delete and calls this when Edit is clicked. */
+  onEditJob?: (job: JobOpportunity) => void;
 }
 
-export function JobOpportunitiesList({ recruiterId, refreshTrigger }: JobOpportunitiesListProps = {}) {
+export function JobOpportunitiesList({ recruiterId, refreshTrigger, onEditJob }: JobOpportunitiesListProps = {}) {
   const [jobs, setJobs] = useState<JobOpportunity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedJobId, setExpandedJobId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     loadJobs();
@@ -40,6 +43,21 @@ export function JobOpportunitiesList({ recruiterId, refreshTrigger }: JobOpportu
 
   const toggleExpand = (jobId: string) => {
     setExpandedJobId(expandedJobId === jobId ? null : jobId);
+  };
+
+  const handleDelete = async (job: JobOpportunity) => {
+    if (!recruiterId || !window.confirm(`Delete "${job.title}" at ${job.company}? This cannot be undone.`)) return;
+    setDeletingId(job.id);
+    try {
+      await deleteJobOpportunity(job.id);
+      await loadJobs();
+      if (expandedJobId === job.id) setExpandedJobId(null);
+    } catch (err) {
+      console.error('Failed to delete job:', err);
+      setError(getErrorMessage(err, 'Failed to delete job'));
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   const formatDate = (timestamp: number) => {
@@ -194,6 +212,29 @@ export function JobOpportunitiesList({ recruiterId, refreshTrigger }: JobOpportu
                     </div>
                   )}
 
+                  {recruiterId && onEditJob && (
+                    <div className={styles.recruiterActions}>
+                      <button
+                        type="button"
+                        className={styles.actionBtn}
+                        onClick={(e) => { e.stopPropagation(); onEditJob(job); }}
+                        aria-label={`Edit ${job.title}`}
+                      >
+                        <Pencil size={16} />
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.actionBtnDanger}
+                        disabled={deletingId === job.id}
+                        onClick={(e) => { e.stopPropagation(); handleDelete(job); }}
+                        aria-label={`Delete ${job.title}`}
+                      >
+                        {deletingId === job.id ? <Loader2 size={16} className={styles.spinner} /> : <Trash2 size={16} />}
+                        {deletingId === job.id ? 'Deleting...' : 'Delete'}
+                      </button>
+                    </div>
+                  )}
                   {recruiterId && (
                     <RankedCandidates job={job} />
                   )}

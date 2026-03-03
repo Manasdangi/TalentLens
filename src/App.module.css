@@ -70,14 +70,28 @@
   padding: 2rem 0;
 }
 
+.viewListingsBtn {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.viewListingsBtn:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--accent-primary);
+}
+
 /* Recruiter: sticky "POST NEW JOB" button - centered, below header bottom border */
 .postNewJobBtn {
-  position: fixed;
-  top: 6.5rem;
-  left: 50%;
-  transform: translateX(-50%);
   z-index: 100;
-  padding: 0.625rem 1.25rem;
   background: var(--accent-primary);
   color: #fff;
   border: none;
@@ -88,13 +102,11 @@
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
   transition: background 0.2s, box-shadow 0.2s;
+  width: 10%;
+  margin: 0 auto;
+  padding: 10px;
 }
 
-.postNewJobBtn:hover {
-  background: var(--accent-secondary);
-  transform: translateX(-50%) translateY(-1px);
-  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
-}
 
 /* Post Job modal */
 .modalOverlay {
