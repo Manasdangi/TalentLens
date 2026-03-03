@@ -3,7 +3,7 @@ import { Briefcase, Plus, Loader2, CheckCircle } from 'lucide-react';
 import { RoleFilters, type RoleType, type ExperienceLevel } from '../RoleFilters';
 import { createJobOpportunity, updateJobOpportunity } from '../../services/jobOpportunityService';
 import { getErrorMessage } from '../../utils/getErrorMessage';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/AppStore';
 import type { JobOpportunity, JobOpportunityFormData } from '../../types/jobOpportunity';
 import styles from './JobOpportunityUploader.module.css';
 

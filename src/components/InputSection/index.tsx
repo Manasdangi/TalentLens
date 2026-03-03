@@ -3,7 +3,7 @@ import { JobDescriptionInput } from '../JobDescriptionInput';
 import { RoleFilters, type RoleType, type ExperienceLevel } from '../RoleFilters';
 import { AnalyzeButton } from '../AnalyzeButton';
 import { ErrorMessage } from '../ErrorMessage';
-import { useResumes } from '../../context/ResumeContext';
+import { useResumes } from '../../context/AppStore';
 import styles from './InputSection.module.css';
 
 export const RESUME_INPUT_SECTION_ID = 'resume-input-section';

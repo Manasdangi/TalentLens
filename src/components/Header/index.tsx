@@ -1,6 +1,6 @@
 import { Sparkles } from 'lucide-react';
 import { HamburgerMenu } from '../HamburgerMenu';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/AppStore';
 import styles from './Header.module.css';
 
 interface HeaderProps {

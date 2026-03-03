@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { FolderOpen, Plus, Loader2 } from 'lucide-react';
-import { useResumes } from '../../context/ResumeContext';
-import { useAuth } from '../../context/AuthContext';
+import { useResumes } from '../../context/AppStore';
+import { useAuth } from '../../context/AppStore';
 import { RESUME_CATEGORIES, MAX_SAVED_RESUMES } from '../../types/resume';
 import type { SavedResume } from '../../types/resume';
 import { SavedResumeCard } from './SavedResumeCard';

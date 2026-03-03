@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Briefcase, User, X } from 'lucide-react';
-import type { UserType } from '../../context/AuthContext';
+import type { UserType } from '../../context/slices/UserSlice';
 import styles from './UserTypeSelection.module.css';
 
 interface UserTypeSelectionProps {

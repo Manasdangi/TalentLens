@@ -20,7 +20,7 @@ Analysis is powered by an LLM (Groq) that acts like an ATS/HR expert: it returns
 TalentLens/
 ├── src/                    # Frontend (React + Vite)
 │   ├── components/         # UI (Header, InputSection, AnalysisResults, etc.)
-│   ├── context/            # AuthContext, ResumeContext
+│   ├── context/            # AppStore (single store), slices (UserSlice, ResumeSlice)
 │   ├── services/           # resumeService, jobOpportunityService, userService
 │   ├── utils/              # llmScorer, pdfExtractor
 │   ├── types/              # resume, jobOpportunity

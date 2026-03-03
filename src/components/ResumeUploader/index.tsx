@@ -1,8 +1,8 @@
 import { useCallback, useState } from 'react';
 import { Upload, FileText, X, CheckCircle, Save, Loader2 } from 'lucide-react';
 import { extractTextFromPDF } from '../../utils/pdfExtractor';
-import { useResumes } from '../../context/ResumeContext';
-import { useAuth } from '../../context/AuthContext';
+import { useResumes } from '../../context/AppStore';
+import { useAuth } from '../../context/AppStore';
 import { MAX_SAVED_RESUMES } from '../../types/resume';
 import type { ResumeCategory } from '../../types/resume';
 import { ROLES, EXPERIENCE_LEVELS, type RoleType, type ExperienceLevel } from '../RoleFilters';

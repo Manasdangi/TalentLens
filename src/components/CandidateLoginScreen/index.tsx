@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Sparkles, LogIn, Loader2 } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/AppStore';
 import styles from './CandidateLoginScreen.module.css';
 
 export function CandidateLoginScreen() {
@@ -12,7 +12,7 @@ export function CandidateLoginScreen() {
     try {
       await login();
     } catch {
-      // Error is logged in AuthContext
+      // Error is logged in AppStore
     } finally {
       setIsSigningIn(false);
     }

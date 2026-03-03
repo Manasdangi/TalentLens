@@ -4,7 +4,7 @@ import {
   setDoc,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
-import type { UserType } from '../context/AuthContext';
+import type { UserType } from '../context/slices/UserSlice';
 
 const COLLECTION_NAME = 'Users';
 

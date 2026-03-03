@@ -1,5 +1,5 @@
 import { X, LogOut, User, FileText, Building2, LogIn } from 'lucide-react';
-import { useResumes } from '../../context/ResumeContext';
+import { useResumes } from '../../context/AppStore';
 import { SavedResumes } from '../SavedResumes';
 import type { SavedResume } from '../../types/resume';
 import styles from './Sidebar.module.css';
@@ -86,7 +86,7 @@ export function Sidebar({ isOpen, onClose, user, userType, onLogin, onLogout, on
                 try {
                   await onLogin();
                 } catch (error) {
-                  // Error is already logged in AuthContext
+                  // Error is already logged in AppStore
                 }
               }}
             >
