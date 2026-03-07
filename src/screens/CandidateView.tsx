@@ -68,10 +68,10 @@ export function CandidateView({
         <button
           type="button"
           className={styles.seeLatestOpeningsBtn}
-          onClick={onOpenJobOpportunities}
-          aria-label="See latest openings"
+          onClick={showJobOpportunitiesScreen ? onCloseJobOpportunitiesScreen : onOpenJobOpportunities}
+          aria-label={showJobOpportunitiesScreen ? 'Score resume' : 'See latest openings'}
         >
-          See latest openings
+          {showJobOpportunitiesScreen ? 'Score resume' : 'See latest openings'}
         </button>
       </div>
 

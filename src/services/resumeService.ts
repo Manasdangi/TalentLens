@@ -52,8 +52,12 @@ export async function saveResume(
 
   const now = Date.now();
 
-  if (existingId) {
-    const resumeIndex = existingResumes.findIndex(r => r.id === existingId);
+  // One resume per category: if a resume for this category exists, update it instead of creating
+  const existingByCategory = existingResumes.find(r => r.category === category);
+  const idToUpdate = existingId ?? existingByCategory?.id;
+
+  if (idToUpdate) {
+    const resumeIndex = existingResumes.findIndex(r => r.id === idToUpdate);
     if (resumeIndex === -1) {
       throw new Error('Resume not found');
     }

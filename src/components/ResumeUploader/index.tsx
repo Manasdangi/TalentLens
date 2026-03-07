@@ -3,7 +3,6 @@ import { Upload, FileText, X, CheckCircle, Save, Loader2 } from 'lucide-react';
 import { extractTextFromPDF } from '../../utils/pdfExtractor';
 import { useResumes } from '../../context/AppStore';
 import { useAuth } from '../../context/AppStore';
-import { MAX_SAVED_RESUMES } from '../../types/resume';
 import type { ResumeCategory } from '../../types/resume';
 import { ROLES, EXPERIENCE_LEVELS, type RoleType, type ExperienceLevel } from '../RoleFilters';
 import { getErrorMessage } from '../../utils/getErrorMessage';
@@ -126,7 +125,7 @@ export function ResumeUploader({ onTextExtracted, extractedText, selectedRole, s
   };
 
   const hasContent = extractedText.length > 0;
-  const canSave = user && savedResumes.length < MAX_SAVED_RESUMES && !selectedResume;
+  const canSave = user && hasContent;
   const isFromSaved = selectedResume !== null;
 
   return (
