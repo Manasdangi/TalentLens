@@ -6,7 +6,7 @@ import {
   query,
   where,
 } from 'firebase/firestore';
-import { db } from '../config/firebase';
+import { db, auth } from '../config/firebase';
 import type { JobApplication } from '../types/jobApplication';
 
 const COLLECTION_NAME = 'JobApplications';
@@ -21,18 +21,26 @@ export async function applyForJob(
   resumeContent: string,
   fileName: string
 ): Promise<JobApplication> {
+  const uid = auth.currentUser?.uid;
+  if (!uid) {
+    throw new Error('You must be signed in to apply.');
+  }
+  if (candidateId !== uid) {
+    throw new Error('Application must use the signed-in user.');
+  }
+
   const existing = await getApplicationsByJob(jobId);
-  const alreadyApplied = existing.some((a) => a.candidateId === candidateId);
+  const alreadyApplied = existing.some((a) => a.candidateId === uid);
   if (alreadyApplied) {
     throw new Error('You have already applied for this job.');
   }
 
   const now = Date.now();
-  const id = `${jobId}_${candidateId}_${now}`;
+  const id = `${jobId}_${uid}_${now}`;
   const application: JobApplication = {
     id,
     jobId,
-    candidateId,
+    candidateId: uid,
     candidateEmail,
     candidateName,
     resumeId,
