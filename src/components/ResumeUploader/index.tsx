@@ -18,7 +18,7 @@ interface ResumeUploaderProps {
 
 export function ResumeUploader({ onTextExtracted, extractedText, selectedRole, selectedExperience, jobDescription }: ResumeUploaderProps) {
   const { user } = useAuth();
-  const { savedResumes, saveResume, selectedResume } = useResumes();
+  const { saveResume, selectedResume } = useResumes();
   
   const [isDragging, setIsDragging] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
