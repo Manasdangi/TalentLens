@@ -2,10 +2,18 @@ import Groq from "groq-sdk";
 import type { RoleType, ExperienceLevel } from "../constants";
 import { getRoleLabel, getExperienceLabel } from "../utils/roleExperienceLabels";
 
-const client = new Groq({
-  apiKey: import.meta.env.VITE_GROQ_API_KEY,
-  dangerouslyAllowBrowser: true,
-});
+function getGroqClient(): Groq {
+  const apiKey = import.meta.env.VITE_GROQ_API_KEY;
+  if (!apiKey || typeof apiKey !== "string" || apiKey.trim() === "") {
+    throw new Error(
+      "Groq API key is not configured. Add VITE_GROQ_API_KEY in your environment (e.g. Vercel Project Settings → Environment Variables) and redeploy."
+    );
+  }
+  return new Groq({
+    apiKey,
+    dangerouslyAllowBrowser: true,
+  });
+}
 
 export type ScoreLevel = "poor" | "average" | "good" | "very_good" | "excellent";
 
@@ -80,6 +88,7 @@ export async function scoreResume(
     : `RESUME:\n${resumeText}\n\n---\n\nNote: No specific job description was provided. Please evaluate the resume based on general best practices for a ${role} at ${experience} level.`;
 
   try {
+    const client = getGroqClient();
     const response = await client.chat.completions.create({
       model: "llama-3.3-70b-versatile",
       messages: [
