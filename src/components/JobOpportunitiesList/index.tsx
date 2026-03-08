@@ -1,10 +1,15 @@
-import { useState, useEffect } from 'react';
-import { Briefcase, MapPin, DollarSign, Clock, ExternalLink, Loader2, ChevronDown, ChevronUp, Mail, Pencil, Trash2 } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Briefcase, MapPin, DollarSign, Clock, ExternalLink, Loader2, ChevronDown, ChevronUp, Mail, Pencil, Trash2, Send, CheckCircle } from 'lucide-react';
 import { getJobOpportunities, deleteJobOpportunity } from '../../services/jobOpportunityService';
+import { applyForJob, getMyApplications } from '../../services/applicationService';
 import { getRoleLabel, getExperienceLabel } from '../../utils/roleExperienceLabels';
 import { getErrorMessage } from '../../utils/getErrorMessage';
 import { RankedCandidates } from '../RankedCandidates';
+import { AppliedCandidates } from '../AppliedCandidates';
+import { useAuth } from '../../context/AppStore';
+import { useResumes } from '../../context/AppStore';
 import type { JobOpportunity } from '../../types/jobOpportunity';
+import type { SavedResume } from '../../types/resume';
 import styles from './JobOpportunitiesList.module.css';
 
 interface JobOpportunitiesListProps {
@@ -17,15 +22,36 @@ interface JobOpportunitiesListProps {
 }
 
 export function JobOpportunitiesList({ recruiterId, refreshTrigger, onEditJob }: JobOpportunitiesListProps = {}) {
+  const { user } = useAuth();
+  const { savedResumes } = useResumes();
   const [jobs, setJobs] = useState<JobOpportunity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedJobId, setExpandedJobId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [myAppliedJobIds, setMyAppliedJobIds] = useState<Set<string>>(new Set());
+  const [applyModalJob, setApplyModalJob] = useState<JobOpportunity | null>(null);
+  const [selectedResumeForApply, setSelectedResumeForApply] = useState<SavedResume | null>(null);
+  const [applying, setApplying] = useState(false);
+  const [applyError, setApplyError] = useState<string | null>(null);
 
   useEffect(() => {
     loadJobs();
   }, [recruiterId, refreshTrigger]);
+
+  const loadMyApplications = useCallback(async () => {
+    if (!user || recruiterId) return;
+    try {
+      const apps = await getMyApplications(user.id);
+      setMyAppliedJobIds(new Set(apps.map((a) => a.jobId)));
+    } catch {
+      setMyAppliedJobIds(new Set());
+    }
+  }, [user, recruiterId]);
+
+  useEffect(() => {
+    loadMyApplications();
+  }, [loadMyApplications]);
 
   const loadJobs = async () => {
     setIsLoading(true);
@@ -63,6 +89,37 @@ export function JobOpportunitiesList({ recruiterId, refreshTrigger, onEditJob }:
   const formatDate = (timestamp: number) => {
     const date = new Date(timestamp);
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+  };
+
+  const handleOpenApplyModal = (job: JobOpportunity) => {
+    setApplyModalJob(job);
+    setSelectedResumeForApply(null);
+    setApplyError(null);
+  };
+
+  const handleApplySubmit = async () => {
+    if (!applyModalJob || !user || !selectedResumeForApply) return;
+    setApplying(true);
+    setApplyError(null);
+    try {
+      await applyForJob(
+        applyModalJob.id,
+        user.id,
+        user.email ?? '',
+        user.name ?? 'Candidate',
+        selectedResumeForApply.id,
+        selectedResumeForApply.label,
+        selectedResumeForApply.content,
+        selectedResumeForApply.fileName
+      );
+      setMyAppliedJobIds((prev) => new Set(prev).add(applyModalJob.id));
+      setApplyModalJob(null);
+      setSelectedResumeForApply(null);
+    } catch (err) {
+      setApplyError(getErrorMessage(err, 'Failed to apply'));
+    } finally {
+      setApplying(false);
+    }
   };
 
   const title = recruiterId ? 'Your Posted Jobs' : 'Job Opportunities';
@@ -212,6 +269,31 @@ export function JobOpportunitiesList({ recruiterId, refreshTrigger, onEditJob }:
                     </div>
                   )}
 
+                  {!recruiterId && (
+                    <div className={styles.applySection}>
+                      {!user ? (
+                        <p className={styles.applySignInHint}>Sign in to apply for this job with your saved resume.</p>
+                      ) : myAppliedJobIds.has(job.id) ? (
+                        <div className={styles.appliedBadge}>
+                          <CheckCircle size={18} />
+                          Applied
+                        </div>
+                      ) : savedResumes.length === 0 ? (
+                        <p className={styles.applySignInHint}>Save a resume from the Score resume page first, then you can apply here.</p>
+                      ) : (
+                        <button
+                          type="button"
+                          className={styles.applyBtn}
+                          onClick={(e) => { e.stopPropagation(); handleOpenApplyModal(job); }}
+                          aria-label={`Apply for ${job.title}`}
+                        >
+                          <Send size={16} />
+                          Apply with resume
+                        </button>
+                      )}
+                    </div>
+                  )}
+
                   {recruiterId && onEditJob && (
                     <div className={styles.recruiterActions}>
                       <button
@@ -236,12 +318,67 @@ export function JobOpportunitiesList({ recruiterId, refreshTrigger, onEditJob }:
                     </div>
                   )}
                   {recruiterId && (
-                    <RankedCandidates job={job} />
+                    <>
+                      <RankedCandidates job={job} />
+                      <AppliedCandidates job={job} />
+                    </>
                   )}
                 </div>
               )}
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Apply modal (candidate view) */}
+      {applyModalJob && (
+        <div className={styles.modalOverlay} onClick={() => !applying && setApplyModalJob(null)}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <h3 className={styles.modalTitle}>Apply for {applyModalJob.title}</h3>
+            <p className={styles.modalSubtitle}>Choose a resume to submit</p>
+            <div className={styles.resumeOptions}>
+              {savedResumes.map((resume) => (
+                <button
+                  key={resume.id}
+                  type="button"
+                  className={selectedResumeForApply?.id === resume.id ? styles.resumeOptionSelected : styles.resumeOption}
+                  onClick={() => setSelectedResumeForApply(resume)}
+                >
+                  <span className={styles.resumeOptionLabel}>{resume.label}</span>
+                  <span className={styles.resumeOptionMeta}>{resume.fileName}</span>
+                </button>
+              ))}
+            </div>
+            {applyError && <p className={styles.applyError}>{applyError}</p>}
+            <div className={styles.modalActions}>
+              <button
+                type="button"
+                className={styles.modalCancelBtn}
+                onClick={() => setApplyModalJob(null)}
+                disabled={applying}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className={styles.modalConfirmBtn}
+                onClick={handleApplySubmit}
+                disabled={applying || !selectedResumeForApply}
+              >
+                {applying ? (
+                  <>
+                    <Loader2 size={16} className={styles.spinner} />
+                    Applying…
+                  </>
+                ) : (
+                  <>
+                    <Send size={16} />
+                    Apply
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
