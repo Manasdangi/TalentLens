@@ -22,6 +22,16 @@ service cloud.firestore {
       allow update, delete: if request.auth != null && resource.data.recruiterId == request.auth.uid;
     }
 
+    // JobApplications - candidates apply for jobs; recruiters read applications for their jobs
+    match /JobApplications/{applicationId} {
+      allow create: if request.auth != null && request.resource.data.candidateId == request.auth.uid;
+      allow read: if request.auth != null && (
+        resource.data.candidateId == request.auth.uid ||
+        get(/databases/$(database)/documents/JobOpportunities/$(resource.data.jobId)).data.recruiterId == request.auth.uid
+      );
+      allow update, delete: if false;
+    }
+
     // ResumeByRole: resumes indexed by role doc (e.g. ResumeByRole/frontend/resumes/{resumeId})
     // Candidates write their own; recruiters can read all (to rank by role)
     match /ResumeByRole/{roleId}/resumes/{resumeId} {
