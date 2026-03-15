@@ -6,7 +6,7 @@ function getGroqClient(): Groq {
   const apiKey = import.meta.env.VITE_GROQ_API;
   if (!apiKey || typeof apiKey !== "string" || apiKey.trim() === "") {
     throw new Error(
-      "Groq API key is not configured. Add VITE_GROQ_API_KEY in your environment (e.g. Vercel Project Settings → Environment Variables) and redeploy."
+      "Groq API key is not configured. Add VITE_GROQ_API in your environment (e.g. Vercel Project Settings → Environment Variables) and redeploy."
     );
   }
   return new Groq({
