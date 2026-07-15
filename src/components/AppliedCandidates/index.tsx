@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { UserCheck, Mail, ChevronDown, ChevronUp, Loader2, FileText } from 'lucide-react';
 import { getApplicationsByJob } from '../../services/applicationService';
+import { getResume } from '../../services/resumeService';
 import type { JobApplication } from '../../types/jobApplication';
 import type { JobOpportunity } from '../../types/jobOpportunity';
 import styles from './AppliedCandidates.module.css';
@@ -23,6 +24,8 @@ export function AppliedCandidates({ job }: AppliedCandidatesProps) {
   const [applications, setApplications] = useState<JobApplication[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [resumeContentById, setResumeContentById] = useState<Record<string, string | null>>({});
+  const [loadingResumeId, setLoadingResumeId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -38,8 +41,23 @@ export function AppliedCandidates({ job }: AppliedCandidatesProps) {
     return () => { cancelled = true; };
   }, [job.id]);
 
-  const toggleExpand = (id: string) => {
-    setExpandedId((prev) => (prev === id ? null : id));
+  const toggleExpand = async (applicationId: string, resumeId: string) => {
+    setExpandedId((prev) => (prev === applicationId ? null : applicationId));
+
+    if (expandedId === applicationId || resumeId in resumeContentById) {
+      return;
+    }
+
+    setLoadingResumeId(resumeId);
+    try {
+      const resume = await getResume(resumeId);
+      setResumeContentById((prev) => ({
+        ...prev,
+        [resumeId]: resume?.content ?? null,
+      }));
+    } finally {
+      setLoadingResumeId(null);
+    }
   };
 
   return (
@@ -71,10 +89,12 @@ export function AppliedCandidates({ job }: AppliedCandidatesProps) {
               <div key={app.id} className={styles.card}>
                 <div
                   className={styles.cardHeader}
-                  onClick={() => toggleExpand(app.id)}
+                  onClick={() => void toggleExpand(app.id, app.resumeId)}
                   role="button"
                   tabIndex={0}
-                  onKeyDown={(e) => e.key === 'Enter' && toggleExpand(app.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') void toggleExpand(app.id, app.resumeId);
+                  }}
                   aria-expanded={isExpanded}
                 >
                   <div className={styles.cardMeta}>
@@ -99,7 +119,14 @@ export function AppliedCandidates({ job }: AppliedCandidatesProps) {
                 </div>
                 {isExpanded && (
                   <div className={styles.resumeContent}>
-                    <pre>{app.resumeContent}</pre>
+                    {loadingResumeId === app.resumeId ? (
+                      <div className={styles.loading}>
+                        <Loader2 size={18} className={styles.spinner} />
+                        <span>Loading resume…</span>
+                      </div>
+                    ) : (
+                      <pre>{resumeContentById[app.resumeId] ?? 'Resume is no longer available.'}</pre>
+                    )}
                   </div>
                 )}
               </div>

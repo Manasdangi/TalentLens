@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Users, Loader2, ChevronDown, ChevronUp, Award, Mail } from 'lucide-react';
 import { getResumesByRole, getRoleIdForQuery } from '../../services/resumeByRoleService';
+import { getResume } from '../../services/resumeService';
 import { scoreResume } from '../../services/llmScorer';
 import { getErrorMessage } from '../../utils/getErrorMessage';
 import type { JobOpportunity } from '../../types/jobOpportunity';
@@ -52,8 +53,12 @@ export function RankedCandidates({ job }: RankedCandidatesProps) {
       for (let i = 0; i < toScore.length; i++) {
         setProgress({ current: i + 1, total: toScore.length });
         const resume = toScore[i];
+        const fullResume = await getResume(resume.resumeId);
+        if (!fullResume) {
+          continue;
+        }
         const result = await scoreResume(
-          resume.content,
+          fullResume.content,
           job.description,
           job.role as RoleType,
           job.experienceLevel as ExperienceLevel

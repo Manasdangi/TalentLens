@@ -18,7 +18,6 @@ export async function applyForJob(
   candidateName: string,
   resumeId: string,
   resumeLabel: string,
-  resumeContent: string,
   fileName: string
 ): Promise<JobApplication> {
   const uid = auth.currentUser?.uid;
@@ -29,14 +28,14 @@ export async function applyForJob(
     throw new Error('Application must use the signed-in user.');
   }
 
-  const existing = await getApplicationsByJob(jobId);
-  const alreadyApplied = existing.some((a) => a.candidateId === uid);
+  const id = `${jobId}_${uid}`;
+  const docRef = doc(db, COLLECTION_NAME, id);
+  const alreadyApplied = (await getMyApplications(uid)).some((app) => app.jobId === jobId);
   if (alreadyApplied) {
     throw new Error('You have already applied for this job.');
   }
 
   const now = Date.now();
-  const id = `${jobId}_${uid}_${now}`;
   const application: JobApplication = {
     id,
     jobId,
@@ -45,12 +44,10 @@ export async function applyForJob(
     candidateName,
     resumeId,
     resumeLabel,
-    resumeContent,
     fileName,
     appliedAt: now,
   };
 
-  const docRef = doc(db, COLLECTION_NAME, id);
   await setDoc(docRef, application);
   return application;
 }

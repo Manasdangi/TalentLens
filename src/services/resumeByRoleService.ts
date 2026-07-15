@@ -59,7 +59,6 @@ export async function syncResumeByRole(
       resumeId: resume.id,
       targetRole: roleId,
       experienceLevel: resume.experienceLevel,
-      content: resume.content,
       label: resume.label,
       ...(userEmail !== undefined && { userEmail }),
       ...(userName !== undefined && { userName }),

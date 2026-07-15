@@ -109,7 +109,6 @@ export function JobOpportunitiesList({ recruiterId, refreshTrigger, onEditJob }:
         user.name ?? 'Candidate',
         selectedResumeForApply.id,
         selectedResumeForApply.label,
-        selectedResumeForApply.content,
         selectedResumeForApply.fileName
       );
       setMyAppliedJobIds((prev) => new Set(prev).add(applyModalJob.id));

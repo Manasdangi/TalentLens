@@ -99,6 +99,15 @@ export function ResumeUploader({ onTextExtracted, extractedText, selectedRole, s
     try {
       // Use target role as category (same set of values)
       const category = (saveRole || 'other') as ResumeCategory;
+      console.info('[ResumeUploader] Saving resume started', {
+        category,
+        fileName,
+        label: saveLabel.trim(),
+        userId: user?.id,
+        targetRole: saveRole || undefined,
+        experienceLevel: saveExperience || undefined,
+        contentLength: extractedText.length,
+      });
       const result = await saveResume(
         category,
         saveLabel.trim(),
@@ -113,11 +122,21 @@ export function ResumeUploader({ onTextExtracted, extractedText, selectedRole, s
       );
       
       if (result) {
+        console.info('[ResumeUploader] Saving resume succeeded', {
+          resumeId: result.id,
+          userId: result.userId,
+          targetRole: result.targetRole,
+          experienceLevel: result.experienceLevel,
+        });
         setShowSaveModal(false);
         setSaveSuccess(true);
+      } else {
+        console.error('[ResumeUploader] Saving resume failed: saveResume returned null');
+        setError('Failed to save resume. Check the browser console for details.');
       }
     } catch (err) {
       const message = getErrorMessage(err, 'Failed to save resume');
+      console.error('[ResumeUploader] Saving resume threw an error:', err);
       setError(message);
     } finally {
       setIsSaving(false);

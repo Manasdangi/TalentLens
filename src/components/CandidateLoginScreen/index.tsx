@@ -1,11 +1,19 @@
-import { useState } from 'react';
-import { Sparkles, LogIn, Loader2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Eye, Sparkles, LogIn, Loader2 } from 'lucide-react';
 import { useAuth } from '../../context/AppStore';
+import { subscribeToLoginViewerCount } from '../../services/loginViewerService';
 import styles from './CandidateLoginScreen.module.css';
 
 export function CandidateLoginScreen() {
   const { login, isLoading: authLoading } = useAuth();
   const [isSigningIn, setIsSigningIn] = useState(false);
+  const [viewerCount, setViewerCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    return subscribeToLoginViewerCount(setViewerCount, (error) => {
+      console.warn('Failed to update login viewer count:', error);
+    });
+  }, []);
 
   const handleLogin = async () => {
     setIsSigningIn(true);
@@ -38,6 +46,14 @@ export function CandidateLoginScreen() {
           </div>
           <h1 className={styles.title}>TalentLens</h1>
           <p className={styles.tagline}>AI-Powered Resume Scoring</p>
+          {viewerCount !== null && (
+            <div className={styles.viewerCount} aria-live="polite">
+              <Eye size={16} />
+              <span>
+                {viewerCount.toLocaleString()} {viewerCount === 1 ? 'viewer' : 'viewers'} online
+              </span>
+            </div>
+          )}
         </div>
 
         <div className={styles.loginBlock}>

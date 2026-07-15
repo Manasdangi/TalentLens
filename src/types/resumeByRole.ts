@@ -7,7 +7,6 @@ export interface ResumeByRoleDoc {
   resumeId: string;
   targetRole: string;
   experienceLevel?: string;
-  content: string;
   label: string;
   /** Candidate email for recruiter display (optional, set when saving). */
   userEmail?: string;

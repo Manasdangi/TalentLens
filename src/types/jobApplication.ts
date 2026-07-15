@@ -6,7 +6,6 @@ export interface JobApplication {
   candidateName: string;
   resumeId: string;
   resumeLabel: string;
-  resumeContent: string;
   fileName: string;
   appliedAt: number;
 }

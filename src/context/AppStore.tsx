@@ -179,6 +179,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       }
       setResumeError(null);
       try {
+        console.info('[AppStore] saveResume request', {
+          userId: user.id,
+          category,
+          label,
+          fileName,
+          existingId,
+          targetRole: options?.targetRole,
+          experienceLevel: options?.experienceLevel,
+          contentLength: content.length,
+        });
         const savedResume = await saveResumeToDb(
           user.id,
           category,
@@ -189,11 +199,25 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           { ...options, userEmail: user.email, userName: user.name }
         );
         await refreshResumes();
+        console.info('[AppStore] saveResume success', {
+          resumeId: savedResume.id,
+          userId: savedResume.userId,
+        });
         return savedResume;
       } catch (err) {
         const message = getErrorMessage(err, 'Failed to save resume');
         setResumeError(message);
-        console.error('Failed to save resume:', err);
+        console.error('[AppStore] saveResume failed:', {
+          message,
+          userId: user.id,
+          category,
+          label,
+          fileName,
+          existingId,
+          targetRole: options?.targetRole,
+          experienceLevel: options?.experienceLevel,
+          error: err,
+        });
         return null;
       }
     },

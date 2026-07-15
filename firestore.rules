@@ -1,15 +1,46 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Resumes collection - users can only access their own document
-    match /Resumes/{userId} {
-      // Allow read/write only if the authenticated user's UID matches the document ID
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+    function isRecruiter() {
+      return request.auth != null &&
+        get(/databases/$(database)/documents/Users/$(request.auth.uid)).data.userType == 'recruiter';
+    }
+
+    // Resumes collection - one resume per document.
+    // Users manage their own resumes; recruiters can read individual resume docs
+    // for candidate ranking/application review.
+    match /Resumes/{resumeId} {
+      allow read: if request.auth != null && (
+        resource.data.userId == request.auth.uid ||
+        (isRecruiter() && resource.data.keys().hasAll(['id', 'content']))
+      );
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update: if request.auth != null &&
+        resource.data.userId == request.auth.uid &&
+        request.resource.data.userId == request.auth.uid;
+      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
     
     // Users collection - users can read/write their own profile
     match /Users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Public login-page presence count. Documents contain only ephemeral
+    // session IDs and timestamps so the login screen can show active viewers.
+    match /LoginPageViewers/{viewerId} {
+      allow read: if true;
+      allow create, update: if request.resource.data.keys().hasOnly([
+          'sessionId',
+          'page',
+          'lastSeenAt',
+          'createdAt'
+        ]) &&
+        request.resource.data.sessionId == viewerId &&
+        request.resource.data.page == 'candidate-login' &&
+        request.resource.data.lastSeenAt == request.time &&
+        request.resource.data.createdAt == request.time;
+      allow delete: if resource.data.sessionId == viewerId;
     }
     
     // JobOpportunities collection
@@ -33,9 +64,10 @@ service cloud.firestore {
     }
 
     // ResumeByRole: resumes indexed by role doc (e.g. ResumeByRole/frontend/resumes/{resumeId})
-    // Candidates write their own; recruiters can read all (to rank by role)
+    // Candidates write their own lightweight index docs; recruiters can read all
+    // index docs and fetch the source resume document by resumeId when needed.
     match /ResumeByRole/{roleId}/resumes/{resumeId} {
-      allow read: if request.auth != null && get(/databases/$(database)/documents/Users/$(request.auth.uid)).data.userType == 'recruiter';
+      allow read: if isRecruiter();
       allow create, update: if request.auth != null && request.resource.data.userId == request.auth.uid;
       allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
