@@ -10,10 +10,13 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
+const SCORE_RATE_LIMIT_WINDOW_MS = Number(process.env.SCORE_RATE_LIMIT_WINDOW_MS || 60 * 60 * 1000);
+const SCORE_RATE_LIMIT_MAX = Number(process.env.SCORE_RATE_LIMIT_MAX || 10);
 const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:5173')
   .split(',')
   .map((origin) => origin.trim().replace(/\/$/, ''))
   .filter(Boolean);
+const scoreRateLimitStore = new Map<string, { count: number; resetAt: number }>();
 
 // Types
 interface User {
@@ -218,7 +221,48 @@ function isScoringResult(value: unknown): value is ScoringResult {
   );
 }
 
+function getClientKey(req: express.Request): string {
+  const forwardedFor = req.headers['x-forwarded-for'];
+  if (typeof forwardedFor === 'string' && forwardedFor.length > 0) {
+    return forwardedFor.split(',')[0].trim();
+  }
+  return req.ip || req.socket.remoteAddress || 'unknown';
+}
+
+function checkScoreRateLimit(clientKey: string): { allowed: true } | { allowed: false; retryAfterSeconds: number } {
+  const now = Date.now();
+  const current = scoreRateLimitStore.get(clientKey);
+
+  if (!current || current.resetAt <= now) {
+    scoreRateLimitStore.set(clientKey, {
+      count: 1,
+      resetAt: now + SCORE_RATE_LIMIT_WINDOW_MS,
+    });
+    return { allowed: true };
+  }
+
+  if (current.count >= SCORE_RATE_LIMIT_MAX) {
+    return {
+      allowed: false,
+      retryAfterSeconds: Math.ceil((current.resetAt - now) / 1000),
+    };
+  }
+
+  current.count += 1;
+  scoreRateLimitStore.set(clientKey, current);
+  return { allowed: true };
+}
+
 app.post('/api/score-resume', async (req, res) => {
+  const rateLimit = checkScoreRateLimit(getClientKey(req));
+  if (!rateLimit.allowed) {
+    res
+      .status(429)
+      .set('Retry-After', String(rateLimit.retryAfterSeconds))
+      .json({ error: 'Too many resume analyses. Please wait before trying again.' });
+    return;
+  }
+
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
     res.status(500).json({ error: 'Groq API key is not configured on the server.' });
