@@ -56,7 +56,7 @@ export function CandidateLoginScreen() {
               {viewerCounts.allTimeCount !== null && (
                 <>
                   <span className={styles.viewerDivider} aria-hidden="true" />
-                  <span>{viewerCounts.allTimeCount.toLocaleString()} all-time</span>
+                  <span>{viewerCounts.allTimeCount.toLocaleString()} all-time viewers</span>
                 </>
               )}
             </div>
