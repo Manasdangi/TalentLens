@@ -7,6 +7,8 @@ export interface ResumeByRoleDoc {
   resumeId: string;
   targetRole: string;
   experienceLevel?: string;
+  /** Legacy field from before ResumeByRole became a lightweight index. */
+  content?: string;
   label: string;
   /** Candidate email for recruiter display (optional, set when saving). */
   userEmail?: string;

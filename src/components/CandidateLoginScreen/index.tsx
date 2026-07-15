@@ -1,16 +1,19 @@
 import { useEffect, useState } from 'react';
 import { Eye, Sparkles, LogIn, Loader2 } from 'lucide-react';
 import { useAuth } from '../../context/AppStore';
-import { subscribeToLoginViewerCount } from '../../services/loginViewerService';
+import {
+  subscribeToLoginViewerCount,
+  type LoginViewerCounts,
+} from '../../services/loginViewerService';
 import styles from './CandidateLoginScreen.module.css';
 
 export function CandidateLoginScreen() {
   const { login, isLoading: authLoading } = useAuth();
   const [isSigningIn, setIsSigningIn] = useState(false);
-  const [viewerCount, setViewerCount] = useState<number | null>(null);
+  const [viewerCounts, setViewerCounts] = useState<LoginViewerCounts | null>(null);
 
   useEffect(() => {
-    return subscribeToLoginViewerCount(setViewerCount, (error) => {
+    return subscribeToLoginViewerCount(setViewerCounts, (error) => {
       console.warn('Failed to update login viewer count:', error);
     });
   }, []);
@@ -46,12 +49,16 @@ export function CandidateLoginScreen() {
           </div>
           <h1 className={styles.title}>TalentLens</h1>
           <p className={styles.tagline}>AI-Powered Resume Scoring</p>
-          {viewerCount !== null && (
+          {viewerCounts !== null && (
             <div className={styles.viewerCount} aria-live="polite">
               <Eye size={16} />
-              <span>
-                {viewerCount.toLocaleString()} {viewerCount === 1 ? 'viewer' : 'viewers'} online
-              </span>
+              <span>{viewerCounts.onlineCount.toLocaleString()} online</span>
+              {viewerCounts.allTimeCount !== null && (
+                <>
+                  <span className={styles.viewerDivider} aria-hidden="true" />
+                  <span>{viewerCounts.allTimeCount.toLocaleString()} all-time</span>
+                </>
+              )}
             </div>
           )}
         </div>

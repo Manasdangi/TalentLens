@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { UserCheck, Mail, ChevronDown, ChevronUp, Loader2, FileText } from 'lucide-react';
 import { getApplicationsByJob } from '../../services/applicationService';
-import { getResume } from '../../services/resumeService';
+import { getResumeForUser } from '../../services/resumeService';
 import type { JobApplication } from '../../types/jobApplication';
 import type { JobOpportunity } from '../../types/jobOpportunity';
 import styles from './AppliedCandidates.module.css';
@@ -50,10 +50,11 @@ export function AppliedCandidates({ job }: AppliedCandidatesProps) {
 
     setLoadingResumeId(resumeId);
     try {
-      const resume = await getResume(resumeId);
+      const app = applications.find((application) => application.id === applicationId);
+      const resume = app ? await getResumeForUser(app.candidateId, resumeId) : null;
       setResumeContentById((prev) => ({
         ...prev,
-        [resumeId]: resume?.content ?? null,
+        [resumeId]: resume?.content ?? app?.resumeContent ?? null,
       }));
     } finally {
       setLoadingResumeId(null);

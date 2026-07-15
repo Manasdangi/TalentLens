@@ -65,6 +65,27 @@ export async function getResume(resumeId: string): Promise<SavedResume | null> {
   return data as SavedResume;
 }
 
+export async function getResumeForUser(userId: string, resumeId: string): Promise<SavedResume | null> {
+  const resume = await getResume(resumeId);
+  if (resume) {
+    return resume;
+  }
+
+  // Temporary backwards compatibility for old Resumes/{userId}.resumes[] data.
+  const legacyDocRef = doc(db, COLLECTION_NAME, userId);
+  const legacySnapshot = await getDoc(legacyDocRef);
+  if (!legacySnapshot.exists()) {
+    return null;
+  }
+
+  const legacyData = legacySnapshot.data() as Partial<UserResumesDoc>;
+  if (!Array.isArray(legacyData.resumes)) {
+    return null;
+  }
+
+  return legacyData.resumes.find((legacyResume) => legacyResume.id === resumeId) ?? null;
+}
+
 export interface SaveResumeOptions {
   targetRole?: string;
   experienceLevel?: string;

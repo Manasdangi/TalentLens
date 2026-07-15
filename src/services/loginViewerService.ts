@@ -2,6 +2,8 @@ import {
   collection,
   deleteDoc,
   doc,
+  getCountFromServer,
+  getDoc,
   onSnapshot,
   serverTimestamp,
   setDoc,
@@ -11,9 +13,16 @@ import {
 import { db } from '../config/firebase';
 
 const COLLECTION_NAME = 'LoginPageViewers';
+const ALL_TIME_COLLECTION_NAME = 'LoginPageAllTimeViewers';
 const SESSION_STORAGE_KEY = 'talentlens_login_viewer_session';
+const ALL_TIME_STORAGE_KEY = 'talentlens_login_all_time_viewer';
 const ACTIVE_WINDOW_MS = 2 * 60 * 1000;
 const HEARTBEAT_MS = 30 * 1000;
+
+export interface LoginViewerCounts {
+  onlineCount: number;
+  allTimeCount: number | null;
+}
 
 function getViewerSessionId() {
   const existingSessionId = sessionStorage.getItem(SESSION_STORAGE_KEY);
@@ -30,13 +39,51 @@ function getViewerSessionId() {
   return sessionId;
 }
 
+function getAllTimeViewerId() {
+  const existingViewerId = localStorage.getItem(ALL_TIME_STORAGE_KEY);
+  if (existingViewerId) {
+    return existingViewerId;
+  }
+
+  const viewerId =
+    typeof crypto !== 'undefined' && 'randomUUID' in crypto
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+  localStorage.setItem(ALL_TIME_STORAGE_KEY, viewerId);
+  return viewerId;
+}
+
+async function registerAndCountAllTimeViewer() {
+  const viewerId = getAllTimeViewerId();
+  const viewerDocRef = doc(db, ALL_TIME_COLLECTION_NAME, viewerId);
+  const viewerSnapshot = await getDoc(viewerDocRef);
+
+  if (!viewerSnapshot.exists()) {
+    await setDoc(viewerDocRef, {
+      viewerId,
+      page: 'candidate-login',
+      firstSeenAt: serverTimestamp(),
+    });
+  }
+
+  const countSnapshot = await getCountFromServer(collection(db, ALL_TIME_COLLECTION_NAME));
+  return countSnapshot.data().count;
+}
+
 export function subscribeToLoginViewerCount(
-  onCountChange: (count: number) => void,
+  onCountChange: (counts: LoginViewerCounts) => void,
   onError?: (error: Error) => void
 ): Unsubscribe {
   const sessionId = getViewerSessionId();
   const viewerDocRef = doc(db, COLLECTION_NAME, sessionId);
   const viewersCollectionRef = collection(db, COLLECTION_NAME);
+  let allTimeCount: number | null = null;
+  let onlineCount = 0;
+
+  const emitCounts = () => {
+    onCountChange({ onlineCount, allTimeCount });
+  };
 
   const writeHeartbeat = async () => {
     await setDoc(
@@ -51,6 +98,15 @@ export function subscribeToLoginViewerCount(
     );
   };
 
+  registerAndCountAllTimeViewer()
+    .then((count) => {
+      allTimeCount = count;
+      emitCounts();
+    })
+    .catch((error) => {
+      onError?.(error instanceof Error ? error : new Error('Failed to load all-time viewer count'));
+    });
+
   writeHeartbeat().catch((error) => {
     onError?.(error instanceof Error ? error : new Error('Failed to update viewer count'));
   });
@@ -64,7 +120,8 @@ export function subscribeToLoginViewerCount(
         return lastSeenAt instanceof Timestamp && lastSeenAt.toMillis() >= activeSince;
       }).length;
 
-      onCountChange(activeViewerCount);
+      onlineCount = activeViewerCount;
+      emitCounts();
     },
     (error) => {
       onError?.(error);

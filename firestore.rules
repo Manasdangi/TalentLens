@@ -42,6 +42,20 @@ service cloud.firestore {
         request.resource.data.createdAt == request.time;
       allow delete: if resource.data.sessionId == viewerId;
     }
+
+    // Public append-only login-page viewer history for all-time unique counts.
+    match /LoginPageAllTimeViewers/{viewerId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasOnly([
+          'viewerId',
+          'page',
+          'firstSeenAt'
+        ]) &&
+        request.resource.data.viewerId == viewerId &&
+        request.resource.data.page == 'candidate-login' &&
+        request.resource.data.firstSeenAt == request.time;
+      allow update, delete: if false;
+    }
     
     // JobOpportunities collection
     match /JobOpportunities/{jobId} {

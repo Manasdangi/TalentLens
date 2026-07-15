@@ -6,6 +6,8 @@ export interface JobApplication {
   candidateName: string;
   resumeId: string;
   resumeLabel: string;
+  /** Legacy field from before applications referenced Resumes/{resumeId}. */
+  resumeContent?: string;
   fileName: string;
   appliedAt: number;
 }
