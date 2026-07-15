@@ -11,8 +11,8 @@ Analysis is powered by an LLM (Groq) that acts like an ATS/HR expert: it returns
 
 ## Tech stack
 
-- **Frontend**: React 19, TypeScript, Vite, CSS Modules, Firebase (auth), Google OAuth (`@react-oauth/google`), Groq SDK, OpenAI, PDF.js for resume parsing.
-- **Backend**: Node.js, Express, Passport (Google OAuth), sessions, CORS. Optional for auth/session handling.
+- **Frontend**: React 19, TypeScript, Vite, CSS Modules, Firebase (auth), Google OAuth (`@react-oauth/google`), PDF.js for resume parsing.
+- **Backend**: Node.js, Express, Passport (Google OAuth), sessions, CORS, Groq API proxy for AI scoring.
 
 ## Project structure
 
@@ -53,7 +53,7 @@ TalentLens/
 2. Create a `.env` (or `.env.local`) in the project root with:
 
    ```env
-   VITE_GROQ_API_KEY=your-groq-api-key
+   VITE_API_BASE_URL=http://localhost:3001
    # Plus any Firebase / Google OAuth vars your app uses (e.g. VITE_FIREBASE_*)
    ```
 
@@ -70,9 +70,9 @@ TalentLens/
    npm run preview   # optional: preview production build
    ```
 
-### Backend (optional)
+### Backend
 
-Used for server-side Google OAuth and sessions.
+Used for server-side Google OAuth, sessions, and AI scoring. The Groq API key must live here, not in the frontend.
 
 1. Go to the backend folder and install dependencies:
 
@@ -86,6 +86,8 @@ Used for server-side Google OAuth and sessions.
    - `PORT`, `SESSION_SECRET`
    - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
    - `FRONTEND_URL` (e.g. `http://localhost:5173`)
+   - `GROQ_API_KEY`
+   - `GROQ_MODEL` (optional, defaults to `llama-3.3-70b-versatile`)
 
 3. Run the server:
 
@@ -101,6 +103,22 @@ Used for server-side Google OAuth and sessions.
 | `npm run build`   | TypeScript build + Vite build |
 | `npm run preview` | Preview production build   |
 | `npm run lint`    | Run ESLint                 |
+
+## Deployment notes
+
+Deploy the backend and frontend separately:
+
+1. Deploy `backend/` to a Node.js host such as Render, Railway, Fly.io, or another Express-compatible service.
+2. Set backend environment variables:
+   - `GROQ_API_KEY`
+   - `GROQ_MODEL` (optional)
+   - `FRONTEND_URL` (your deployed frontend URL)
+   - `SESSION_SECRET`
+   - Google OAuth variables if using backend OAuth routes
+3. Deploy the frontend to Vercel, Netlify, Firebase Hosting, or similar.
+4. Set frontend environment variable:
+   - `VITE_API_BASE_URL` (your deployed backend URL)
+5. Rebuild/redeploy the frontend after setting `VITE_API_BASE_URL`.
 
 ## License
 
