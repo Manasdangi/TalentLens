@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, LogOut, User, FileText, Building2, LogIn } from 'lucide-react';
 import { useResumes } from '../../context/AppStore';
 import { SavedResumes } from '../SavedResumes';
@@ -22,6 +24,17 @@ export function Sidebar({ isOpen, onClose, user, userType, onLogin, onLogout, on
   const { savedResumes } = useResumes();
   const isRecruiter = userType === 'recruiter';
 
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isOpen]);
+
   const handleScrollToResumeAndClose = () => {
     onClose();
     // Scroll after sidebar close transition so the target is visible and layout is stable
@@ -38,7 +51,7 @@ export function Sidebar({ isOpen, onClose, user, userType, onLogin, onLogout, on
     }
   };
   
-  return (
+  const sidebar = (
     <>
       {/* Backdrop */}
       <div 
@@ -146,7 +159,7 @@ export function Sidebar({ isOpen, onClose, user, userType, onLogin, onLogout, on
 
         {user && (
           <div className={styles.footer}>
-            <button className={styles.logoutBtn} onClick={onLogout}>
+            <button type="button" className={styles.logoutBtn} onClick={onLogout}>
               <LogOut size={18} />
               Sign Out
             </button>
@@ -155,4 +168,10 @@ export function Sidebar({ isOpen, onClose, user, userType, onLogin, onLogout, on
       </aside>
     </>
   );
+
+  if (typeof document === 'undefined') {
+    return sidebar;
+  }
+
+  return createPortal(sidebar, document.body);
 }

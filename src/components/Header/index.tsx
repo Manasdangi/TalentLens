@@ -1,5 +1,6 @@
 import { Sparkles } from 'lucide-react';
 import { HamburgerMenu } from '../HamburgerMenu';
+import { ThemeToggle } from '../ThemeToggle';
 import { useAuth } from '../../context/AppStore';
 import styles from './Header.module.css';
 
@@ -28,6 +29,7 @@ export function Header({ onResumeSelect, currentResumeText, onScrollToResumeSect
         </div>
 
         <div className={styles.right}>
+          <ThemeToggle />
           <HamburgerMenu 
             user={user} 
             userType={user?.userType}

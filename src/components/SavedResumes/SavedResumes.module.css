@@ -1,9 +1,10 @@
 .container {
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
+  background: linear-gradient(180deg, var(--surface-highlight), rgba(255, 255, 255, 0.02)), var(--bg-card);
+  border: 1px solid var(--surface-border);
+  border-radius: 8px;
   padding: 1rem;
   margin-bottom: 1.5rem;
+  box-shadow: var(--surface-shadow);
 }
 
 .container.sidebarVariant {
@@ -46,7 +47,8 @@
   color: var(--text-muted);
   background: var(--bg-secondary);
   padding: 0.25rem 0.5rem;
-  border-radius: 12px;
+  border: 1px solid var(--surface-border);
+  border-radius: 999px;
 }
 
 .grid {
@@ -70,11 +72,15 @@
 .resumeCard {
   position: relative;
   background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 10px;
+  border: 1px solid var(--surface-border);
+  border-radius: 8px;
   padding: 0.75rem;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition:
+    transform var(--transition-smooth),
+    border-color var(--transition-smooth),
+    box-shadow var(--transition-smooth),
+    background var(--transition-smooth);
   overflow: hidden;
   height: 100px;
 
@@ -83,7 +89,7 @@
 .resumeCard:hover {
   border-color: var(--accent-primary);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.1);
 }
 
 .resumeCard.selected {
@@ -117,26 +123,29 @@
 
 .editBtnTopRight,
 .deleteBtnTopRight {
-  background: rgba(0, 0, 0, 0.35);
+  background: rgba(255, 255, 255, 0.86);
   border: none;
-  color: #fff;
+  color: var(--text-primary);
   cursor: pointer;
   padding: 0.35rem;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 6px;
-  transition: background 0.2s, color 0.2s;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.1);
+  transition: background 0.2s, color 0.2s, transform 0.2s;
 }
 
 .editBtnTopRight:hover {
   background: rgba(99, 102, 241, 0.9);
   color: #fff;
+  transform: translateY(-1px);
 }
 
 .deleteBtnTopRight:hover:not(:disabled) {
   background: rgba(239, 68, 68, 0.9);
   color: #fff;
+  transform: translateY(-1px);
 }
 
 .deleteBtnTopRight:disabled {
@@ -196,7 +205,7 @@
 .emptySlot {
   background: var(--bg-secondary);
   border: 2px dashed var(--border-color);
-  border-radius: 10px;
+  border-radius: 8px;
   padding: 1.25rem 0.75rem;
   display: flex;
   flex-direction: column;

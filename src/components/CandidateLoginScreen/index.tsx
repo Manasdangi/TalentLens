@@ -5,6 +5,7 @@ import {
   subscribeToLoginViewerCount,
   type LoginViewerCounts,
 } from '../../services/loginViewerService';
+import { ThemeToggle } from '../ThemeToggle';
 import styles from './CandidateLoginScreen.module.css';
 
 export function CandidateLoginScreen() {
@@ -42,6 +43,9 @@ export function CandidateLoginScreen() {
 
   return (
     <div className={styles.wrapper}>
+      <div className={styles.topActions}>
+        <ThemeToggle />
+      </div>
       <div className={styles.card}>
         <div className={styles.logo}>
           <div className={styles.logoIcon}>

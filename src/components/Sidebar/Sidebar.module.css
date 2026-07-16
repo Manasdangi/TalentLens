@@ -1,11 +1,11 @@
 .backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(4px);
+  background: var(--modal-scrim);
+  backdrop-filter: blur(8px);
   opacity: 0;
   visibility: hidden;
-  transition: all 0.3s ease;
+  transition: opacity 0.24s ease, visibility 0.24s ease;
   z-index: 998;
 }
 
@@ -21,14 +21,15 @@
   bottom: 0;
   width: 320px;
   max-width: 90vw;
-  background: var(--bg-secondary);
-  border-left: 1px solid var(--border-color);
+  background: linear-gradient(180deg, var(--surface-highlight), rgba(255, 255, 255, 0.34)), var(--sidebar-bg);
+  border-left: 1px solid var(--surface-border);
   transform: translateX(100%);
-  transition: transform 0.3s ease;
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
   z-index: 999;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  box-shadow: -24px 0 60px rgba(15, 23, 42, 0.16);
 }
 
 .sidebar.open {
@@ -40,7 +41,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--surface-border);
 }
 
 .title {
@@ -57,22 +58,26 @@
   width: 40px;
   height: 40px;
   background: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
-  border-radius: 10px;
+  border: 1px solid var(--surface-border);
+  border-radius: 8px;
   color: var(--text-primary);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition:
+    transform var(--transition-smooth),
+    background var(--transition-smooth),
+    border-color var(--transition-smooth);
 }
 
 .closeBtn:hover {
   background: var(--bg-card);
   border-color: var(--accent-primary);
+  transform: translateY(-1px);
 }
 
 /* User Section */
 .userSection {
   padding: 1.5rem;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--surface-border);
 }
 
 .userInfo {
@@ -87,6 +92,7 @@
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid var(--accent-primary);
+  box-shadow: 0 10px 22px rgba(99, 102, 241, 0.18);
 }
 
 .avatarPlaceholder {
@@ -98,7 +104,7 @@
   align-items: center;
   justify-content: center;
   color: var(--text-muted);
-  border: 2px solid var(--border-color);
+  border: 2px solid var(--surface-border);
 }
 
 .userDetails {
@@ -121,7 +127,7 @@
 /* Login Section */
 .loginSection {
   padding: 1.5rem;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--surface-border);
 }
 
 .loginPrompt {
@@ -147,13 +153,14 @@
   font-family: inherit;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.1);
+  transition: transform var(--transition-smooth), box-shadow var(--transition-smooth), background var(--transition-smooth);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
 }
 
 .googleBtn:hover {
   background: #f8f9fa;
-  box-shadow: 0 1px 3px 0 rgba(60, 64, 67, 0.15);
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.12);
+  transform: translateY(-1px);
 }
 
 .googleBtn:active {
@@ -189,17 +196,21 @@
   padding: 0.875rem 1rem;
   background: none;
   border: none;
-  border-radius: 10px;
+  border-radius: 8px;
   color: var(--text-primary);
   font-size: 0.9375rem;
   font-family: inherit;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition:
+    transform var(--transition-smooth),
+    background var(--transition-smooth),
+    color var(--transition-smooth);
   text-align: left;
 }
 
 .navItem:hover {
   background: var(--bg-tertiary);
+  transform: translateX(2px);
 }
 
 .navItem svg {
@@ -217,7 +228,8 @@
   font-size: 0.75rem;
   font-weight: 600;
   padding: 0.25rem 0.625rem;
-  border-radius: 12px;
+  border: 1px solid var(--surface-border);
+  border-radius: 999px;
   min-width: 24px;
   text-align: center;
 }
@@ -225,7 +237,7 @@
 /* Saved Resumes Section */
 .savedResumesSection {
   padding: 1rem 1.5rem;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--surface-border);
   max-height: 50vh;
   overflow-y: auto;
 }
@@ -233,7 +245,7 @@
 /* Footer */
 .footer {
   padding: 1rem 1.5rem;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--surface-border);
   margin-top: auto;
 }
 
@@ -246,16 +258,16 @@
   padding: 0.75rem;
   background: rgba(239, 68, 68, 0.1);
   border: 1px solid rgba(239, 68, 68, 0.3);
-  border-radius: 10px;
+  border-radius: 8px;
   color: var(--score-poor);
   font-size: 0.9375rem;
   font-family: inherit;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: transform var(--transition-smooth), background var(--transition-smooth), border-color var(--transition-smooth);
 }
 
 .logoutBtn:hover {
   background: rgba(239, 68, 68, 0.2);
+  transform: translateY(-1px);
 }
-

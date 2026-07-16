@@ -1,8 +1,8 @@
 .footer {
   padding: 1.5rem 2rem;
   text-align: center;
-  border-top: 1px solid var(--border-color);
-  background: var(--bg-secondary);
+  border-top: 1px solid var(--surface-border);
+  background: var(--header-bg);
 }
 
 .footer p {
@@ -10,4 +10,3 @@
   font-size: 0.875rem;
   margin: 0;
 }
-

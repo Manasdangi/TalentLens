@@ -1,10 +1,11 @@
 .container {
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
+  background: linear-gradient(180deg, var(--surface-highlight), rgba(255, 255, 255, 0.02)), var(--bg-card);
+  border: 1px solid var(--surface-border);
+  border-radius: 8px;
   padding: 2rem;
   max-width: 900px;
   margin: 0 auto;
+  box-shadow: var(--surface-shadow);
 }
 
 .header {
@@ -55,19 +56,23 @@
 .textarea {
   padding: 0.75rem;
   background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--surface-border);
   border-radius: 8px;
   color: var(--text-primary);
   font-size: 0.9375rem;
   font-family: inherit;
-  transition: all 0.2s ease;
+  transition:
+    background var(--transition-smooth),
+    border-color var(--transition-smooth),
+    box-shadow var(--transition-smooth);
 }
 
 .input:focus,
 .textarea:focus {
   outline: none;
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  background: var(--bg-secondary);
+  box-shadow: var(--focus-ring);
 }
 
 .textarea {
@@ -103,22 +108,26 @@
   justify-content: center;
   gap: 0.5rem;
   padding: 0.875rem 1.5rem;
-  background: var(--accent-primary);
+  background: var(--gradient-1);
   border: none;
-  border-radius: 10px;
+  border-radius: 8px;
   color: #fff;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  box-shadow: 0 14px 34px var(--accent-glow);
+  transition:
+    transform var(--transition-smooth),
+    box-shadow var(--transition-smooth),
+    filter var(--transition-smooth);
   font-family: inherit;
   margin-top: 0.5rem;
 }
 
 .submitBtn:hover:not(:disabled) {
-  background: var(--accent-secondary);
+  filter: brightness(1.08);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 18px 42px var(--accent-glow);
 }
 
 .submitBtn:disabled {

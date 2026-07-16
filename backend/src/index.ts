@@ -1,6 +1,7 @@
 import * as Sentry from '@sentry/node';
 import express, { type RequestHandler } from 'express';
 import cors from 'cors';
+import nodemailer from 'nodemailer';
 import session from 'express-session';
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
@@ -17,6 +18,41 @@ const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:5173')
   .map((origin) => origin.trim().replace(/\/$/, ''))
   .filter(Boolean);
 const scoreRateLimitStore = new Map<string, { count: number; resetAt: number }>();
+const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL || 'manas.raj.freelance@gmail.com';
+
+function getSmtpTransport() {
+  const host = process.env.SMTP_HOST;
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+  const port = Number(process.env.SMTP_PORT || 587);
+
+  if (!host || !user || !pass) {
+    return null;
+  }
+
+  return nodemailer.createTransport({
+    host,
+    port,
+    secure: port === 465,
+    auth: {
+      user,
+      pass,
+    },
+  });
+}
+
+function getSupportEmailErrorMessage(error: unknown) {
+  if (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    (error as { code?: unknown }).code === 'EAUTH'
+  ) {
+    return 'Support email is not available right now. Please try again later.';
+  }
+
+  return 'Failed to send support request.';
+}
 
 // Types
 interface User {
@@ -381,6 +417,79 @@ app.post('/api/score-resume', async (req, res) => {
     });
     console.error('[score-resume] Unexpected scoring error', error);
     res.status(500).json({ error: 'Failed to analyze resume.' });
+  }
+});
+
+app.post('/api/support-feedback', async (req, res) => {
+  const { contact, message, pageUrl, name } = req.body as {
+    contact?: unknown;
+    message?: unknown;
+    pageUrl?: unknown;
+    name?: unknown;
+  };
+
+  if (typeof message !== 'string' || message.trim().length === 0) {
+    res.status(400).json({ error: 'Message is required.' });
+    return;
+  }
+
+  if (message.length > 5000) {
+    res.status(400).json({ error: 'Message is too long.' });
+    return;
+  }
+
+  const transport = getSmtpTransport();
+  const from = process.env.SMTP_FROM_EMAIL;
+
+  if (!transport || !from) {
+    res.status(500).json({ error: 'Support email is not configured on the server.' });
+    return;
+  }
+
+  const safeContact = typeof contact === 'string' && contact.trim() ? contact.trim() : 'Not provided';
+  const safeName = typeof name === 'string' && name.trim() ? name.trim() : 'Not provided';
+  const safePageUrl = typeof pageUrl === 'string' && pageUrl.trim() ? pageUrl.trim() : 'Not provided';
+
+  try {
+    await transport.sendMail({
+      from,
+      to: SUPPORT_EMAIL,
+      replyTo: safeContact.includes('@') ? safeContact : undefined,
+      subject: 'TalentLens support request',
+      text: [
+        'New TalentLens help request',
+        '',
+        `Name: ${safeName}`,
+        `Contact: ${safeContact}`,
+        `Page: ${safePageUrl}`,
+        '',
+        'Message:',
+        message.trim(),
+      ].join('\n'),
+    });
+
+    res.json({ ok: true });
+  } catch (error) {
+    const errorMessage = getSupportEmailErrorMessage(error);
+    const isAuthError = (
+      typeof error === 'object' &&
+      error !== null &&
+      'code' in error &&
+      (error as { code?: unknown }).code === 'EAUTH'
+    );
+
+    Sentry.captureException(error, {
+      tags: {
+        route: 'support-feedback',
+      },
+    });
+    if (isAuthError) {
+      console.log(error)
+      console.warn('[support-feedback] SMTP authentication failed. Regenerate Brevo SMTP credentials and restart the backend.');
+    } else {
+      console.error('[support-feedback] Failed to send support email', error);
+    }
+    res.status(502).json({ error: errorMessage });
   }
 });
 

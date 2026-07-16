@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Briefcase, User, X } from 'lucide-react';
 import type { UserType } from '../../context/slices/UserSlice';
+import { ThemeToggle } from '../ThemeToggle';
 import styles from './UserTypeSelection.module.css';
 
 interface UserTypeSelectionProps {
@@ -20,9 +21,12 @@ export function UserTypeSelection({ userName, onSelect, onClose }: UserTypeSelec
 
   return (
     <div className={styles.overlay}>
+      <div className={styles.topActions}>
+        <ThemeToggle />
+      </div>
       <div className={styles.modal}>
         {onClose && (
-          <button className={styles.closeBtn} onClick={onClose}>
+          <button type="button" className={styles.closeBtn} onClick={onClose}>
             <X size={20} />
           </button>
         )}
@@ -34,6 +38,7 @@ export function UserTypeSelection({ userName, onSelect, onClose }: UserTypeSelec
 
         <div className={styles.options}>
           <button
+            type="button"
             className={`${styles.option} ${selectedType === 'candidate' ? styles.selected : ''}`}
             onClick={() => setSelectedType('candidate')}
           >
@@ -45,6 +50,7 @@ export function UserTypeSelection({ userName, onSelect, onClose }: UserTypeSelec
           </button>
 
           <button
+            type="button"
             className={`${styles.option} ${selectedType === 'recruiter' ? styles.selected : ''}`}
             onClick={() => setSelectedType('recruiter')}
           >
@@ -57,6 +63,7 @@ export function UserTypeSelection({ userName, onSelect, onClose }: UserTypeSelec
         </div>
 
         <button
+          type="button"
           className={styles.continueBtn}
           onClick={handleContinue}
           disabled={!selectedType}

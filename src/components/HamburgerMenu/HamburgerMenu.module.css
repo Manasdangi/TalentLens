@@ -4,15 +4,22 @@
   justify-content: center;
   width: 44px;
   height: 44px;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
-  border-radius: 10px;
+  background: linear-gradient(180deg, var(--surface-highlight), rgba(255, 255, 255, 0.02)), var(--bg-tertiary);
+  border: 1px solid var(--surface-border);
+  border-radius: 8px;
   color: var(--text-primary);
   cursor: pointer;
-  transition: all 0.2s ease;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+  transition:
+    transform var(--transition-smooth),
+    background var(--transition-smooth),
+    border-color var(--transition-smooth),
+    box-shadow var(--transition-smooth);
 }
 
 .hamburger:hover {
   background: var(--bg-secondary);
   border-color: var(--accent-primary);
+  box-shadow: 0 12px 30px rgba(99, 102, 241, 0.16);
+  transform: translateY(-1px);
 }

@@ -1,5 +1,5 @@
 .container {
-  animation: slideUp 0.5s ease;
+  animation: slideUp 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @keyframes slideUp {
@@ -17,9 +17,9 @@
   font-size: 1.5rem;
   font-weight: 700;
   margin-bottom: 1.5rem;
+  letter-spacing: 0;
   background: var(--gradient-1);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
-

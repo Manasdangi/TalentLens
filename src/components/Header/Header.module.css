@@ -1,7 +1,12 @@
 .header {
   padding: 1.5rem 2rem;
-  border-bottom: 1px solid var(--border-color);
-  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--surface-border);
+  background: var(--header-bg);
+  backdrop-filter: blur(18px);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: 0 12px 34px rgba(15, 23, 42, 0.08);
 }
 
 .headerContent {
@@ -22,7 +27,9 @@
 
 .right {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
+  gap: 0.75rem;
 }
 
 .logo {
@@ -40,9 +47,15 @@
   width: 44px;
   height: 44px;
   background: var(--gradient-1);
-  border-radius: 12px;
+  border-radius: 8px;
   color: white;
   box-shadow: 0 4px 20px var(--accent-glow);
+  transition: transform var(--transition-smooth), box-shadow var(--transition-smooth);
+}
+
+.logo:hover .logoIcon {
+  box-shadow: 0 8px 28px var(--accent-glow);
+  transform: translateY(-1px) rotate(-2deg);
 }
 
 .logoText {
@@ -57,11 +70,15 @@
 .tagline {
   color: var(--text-secondary);
   font-size: 0.875rem;
-  font-weight: 400;
+  font-weight: 500;
   margin: 0;
 }
 
 @media (max-width: 600px) {
+  .header {
+    padding: 1rem;
+  }
+
   .headerContent {
     grid-template-columns: 1fr auto;
   }

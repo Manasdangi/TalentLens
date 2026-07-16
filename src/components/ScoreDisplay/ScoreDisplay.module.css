@@ -1,9 +1,10 @@
 .container {
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: 16px;
+  background: linear-gradient(180deg, var(--surface-highlight), rgba(255, 255, 255, 0.02)), var(--bg-card);
+  border: 1px solid var(--surface-border);
+  border-radius: 8px;
   padding: 2rem;
-  animation: fadeIn 0.5s ease;
+  box-shadow: var(--surface-shadow);
+  animation: fadeIn 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @keyframes fadeIn {
@@ -24,7 +25,7 @@
   gap: 2rem;
   margin-bottom: 1.5rem;
   padding-bottom: 1.5rem;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--surface-border);
 }
 
 .scoreBadge {
@@ -32,9 +33,10 @@
   align-items: center;
   gap: 0.75rem;
   padding: 1rem 1.5rem;
-  border-radius: 12px;
+  border-radius: 8px;
   font-size: 1.25rem;
   font-weight: 600;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
 }
 
 .scoreBadge.poor {
@@ -84,6 +86,7 @@
   position: relative;
   width: 100px;
   height: 100px;
+  filter: drop-shadow(0 12px 22px rgba(15, 23, 42, 0.1));
 }
 
 .percentageRing svg {
@@ -94,7 +97,7 @@
 
 .ringBg {
   fill: none;
-  stroke: var(--bg-secondary);
+  stroke: var(--ring-bg);
   stroke-width: 8;
 }
 
@@ -134,8 +137,9 @@
   align-items: flex-start;
   gap: 0.75rem;
   padding: 1rem;
-  background: var(--bg-secondary);
-  border-radius: 12px;
+  background: var(--surface-overlay);
+  border: 1px solid var(--surface-border);
+  border-radius: 8px;
   margin-bottom: 1.5rem;
 }
 
@@ -169,8 +173,9 @@
 }
 
 .section {
-  background: var(--bg-secondary);
-  border-radius: 12px;
+  background: var(--surface-overlay);
+  border: 1px solid var(--surface-border);
+  border-radius: 8px;
   padding: 1.25rem;
 }
 
@@ -221,8 +226,9 @@
 }
 
 .keywordSection {
-  background: var(--bg-secondary);
-  border-radius: 12px;
+  background: var(--surface-overlay);
+  border: 1px solid var(--surface-border);
+  border-radius: 8px;
   padding: 1rem;
 }
 
@@ -244,7 +250,7 @@
 
 .tag {
   padding: 0.375rem 0.75rem;
-  border-radius: 6px;
+  border-radius: 999px;
   font-size: 0.75rem;
   font-weight: 500;
 }
@@ -260,4 +266,3 @@
   color: var(--score-poor);
   border: 1px solid rgba(239, 68, 68, 0.3);
 }
-

@@ -1,7 +1,7 @@
 .section {
   margin-top: 1.5rem;
   padding-top: 1.5rem;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--surface-border);
 }
 
 .sectionTitle {
@@ -29,19 +29,24 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.25rem;
-  background: var(--accent-primary);
+  background: var(--gradient-1);
   color: #fff;
   border: none;
   border-radius: 8px;
   font-weight: 600;
   font-size: 0.9375rem;
   cursor: pointer;
-  transition: all 0.2s ease;
+  box-shadow: 0 12px 28px var(--accent-glow);
+  transition:
+    transform var(--transition-smooth),
+    box-shadow var(--transition-smooth),
+    filter var(--transition-smooth);
 }
 
 .rankBtn:hover {
-  background: var(--accent-secondary);
+  filter: brightness(1.08);
   transform: translateY(-1px);
+  box-shadow: 0 16px 34px var(--accent-glow);
 }
 
 .progress {
@@ -100,10 +105,20 @@
 }
 
 .card {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 10px;
+  background: var(--surface-overlay);
+  border: 1px solid var(--surface-border);
+  border-radius: 8px;
   overflow: hidden;
+  transition:
+    transform var(--transition-smooth),
+    border-color var(--transition-smooth),
+    box-shadow var(--transition-smooth);
+}
+
+.card:hover {
+  border-color: rgba(129, 140, 248, 0.35);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.1);
+  transform: translateY(-1px);
 }
 
 .cardHeader {
@@ -112,7 +127,7 @@
   gap: 1rem;
   padding: 1rem 1.25rem;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: background var(--transition-smooth);
 }
 
 .cardHeader:hover {
@@ -150,7 +165,7 @@
   font-weight: 700;
   font-size: 1rem;
   padding: 0.35rem 0.75rem;
-  border-radius: 8px;
+  border-radius: 999px;
 }
 
 .scoreBadge.poor {
@@ -184,7 +199,7 @@
 
 .cardDetails {
   padding: 0 1.25rem 1.25rem;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--surface-border);
   padding-top: 1rem;
 }
 

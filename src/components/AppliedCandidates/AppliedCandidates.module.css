@@ -1,7 +1,7 @@
 .section {
   margin-top: 1.5rem;
   padding-top: 1.5rem;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--surface-border);
 }
 
 .sectionTitle {
@@ -31,10 +31,22 @@
 }
 
 .card {
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
+  background: var(--surface-overlay);
+  border: 1px solid var(--surface-border);
   border-radius: 8px;
   padding: 1rem;
+  transition:
+    transform var(--transition-smooth),
+    border-color var(--transition-smooth),
+    box-shadow var(--transition-smooth),
+    background var(--transition-smooth);
+}
+
+.card:hover {
+  background: var(--surface-overlay-hover);
+  border-color: rgba(129, 140, 248, 0.35);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.1);
+  transform: translateY(-1px);
 }
 
 .cardHeader {
@@ -82,7 +94,7 @@
 .resumeContent {
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--surface-border);
 }
 
 .resumeContent pre {

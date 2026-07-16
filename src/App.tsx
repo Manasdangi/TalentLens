@@ -1,6 +1,7 @@
 import { lazy, Suspense, useState, useEffect } from 'react';
 import { UserTypeSelection } from './components/UserTypeSelection';
 import { CandidateLoginScreen } from './components/CandidateLoginScreen';
+import { SupportFeedback } from './components/SupportFeedback';
 import { RESUME_INPUT_SECTION_ID } from './components/InputSection';
 import { useAuth } from './context/AppStore';
 import { scoreResume, type ScoringResult } from './services/llmScorer';
@@ -98,6 +99,7 @@ function App() {
     return (
       <div className={styles.app}>
         <CandidateLoginScreen />
+        <SupportFeedback />
       </div>
     );
   }
@@ -110,54 +112,61 @@ function App() {
           userName={user.name}
           onSelect={handleUserTypeSelect}
         />
+        <SupportFeedback user={user} />
       </div>
     );
   }
 
   if (user.userType === 'recruiter') {
     return (
-      <Suspense fallback={<div className={styles.loading}>Loading recruiter workspace...</div>}>
-        <RecruiterView
-          onResumeSelect={handleResumeSelect}
-          currentResumeText={resumeText}
-          onScrollToResumeSection={scrollToResumeSection}
-          onOpenJobOpportunities={openJobOpportunitiesScreen}
-          showJobOpportunitiesScreen={showJobOpportunitiesScreen}
-          onCloseJobOpportunitiesScreen={closeJobOpportunitiesScreen}
-          recruiterId={user.id}
-          recruiterJobsRefreshTrigger={recruiterJobsRefreshTrigger}
-          showPostJobModal={showPostJobModal}
-          onOpenPostJobModal={() => setShowPostJobModal(true)}
-          onClosePostJobModal={() => setShowPostJobModal(false)}
-          onJobPosted={() => {
-            setRecruiterJobsRefreshTrigger((t) => t + 1);
-            setShowPostJobModal(false);
-          }}
-        />
-      </Suspense>
+      <>
+        <Suspense fallback={<div className={styles.loading}>Loading recruiter workspace...</div>}>
+          <RecruiterView
+            onResumeSelect={handleResumeSelect}
+            currentResumeText={resumeText}
+            onScrollToResumeSection={scrollToResumeSection}
+            onOpenJobOpportunities={openJobOpportunitiesScreen}
+            showJobOpportunitiesScreen={showJobOpportunitiesScreen}
+            onCloseJobOpportunitiesScreen={closeJobOpportunitiesScreen}
+            recruiterId={user.id}
+            recruiterJobsRefreshTrigger={recruiterJobsRefreshTrigger}
+            showPostJobModal={showPostJobModal}
+            onOpenPostJobModal={() => setShowPostJobModal(true)}
+            onClosePostJobModal={() => setShowPostJobModal(false)}
+            onJobPosted={() => {
+              setRecruiterJobsRefreshTrigger((t) => t + 1);
+              setShowPostJobModal(false);
+            }}
+          />
+        </Suspense>
+        <SupportFeedback user={user} />
+      </>
     );
   }
 
   return (
-    <CandidateView
-      resumeText={resumeText}
-      jobDescription={jobDescription}
-      selectedRole={selectedRole}
-      selectedExperience={selectedExperience}
-      result={result}
-      isLoading={isLoading}
-      error={error}
-      onResumeSelect={handleResumeSelect}
-      onResumeChange={setResumeText}
-      onJobDescriptionChange={setJobDescription}
-      onRoleChange={setSelectedRole}
-      onExperienceChange={setSelectedExperience}
-      onAnalyze={handleAnalyze}
-      scrollToResumeSection={scrollToResumeSection}
-      showJobOpportunitiesScreen={showJobOpportunitiesScreen}
-      onOpenJobOpportunities={openJobOpportunitiesScreen}
-      onCloseJobOpportunitiesScreen={closeJobOpportunitiesScreen}
-    />
+    <>
+      <CandidateView
+        resumeText={resumeText}
+        jobDescription={jobDescription}
+        selectedRole={selectedRole}
+        selectedExperience={selectedExperience}
+        result={result}
+        isLoading={isLoading}
+        error={error}
+        onResumeSelect={handleResumeSelect}
+        onResumeChange={setResumeText}
+        onJobDescriptionChange={setJobDescription}
+        onRoleChange={setSelectedRole}
+        onExperienceChange={setSelectedExperience}
+        onAnalyze={handleAnalyze}
+        scrollToResumeSection={scrollToResumeSection}
+        showJobOpportunitiesScreen={showJobOpportunitiesScreen}
+        onOpenJobOpportunities={openJobOpportunitiesScreen}
+        onCloseJobOpportunitiesScreen={closeJobOpportunitiesScreen}
+      />
+      <SupportFeedback user={user} />
+    </>
   );
 }
 

@@ -1,11 +1,22 @@
 .container {
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: 16px;
+  background: linear-gradient(180deg, var(--surface-highlight), rgba(255, 255, 255, 0.02)), var(--bg-card);
+  border: 1px solid var(--surface-border);
+  border-radius: 8px;
   padding: 1.5rem;
   height: 100%;
   display: flex;
   flex-direction: column;
+  box-shadow: var(--surface-shadow);
+  transition:
+    transform var(--transition-smooth),
+    border-color var(--transition-smooth),
+    box-shadow var(--transition-smooth);
+}
+
+.container:hover {
+  border-color: rgba(129, 140, 248, 0.35);
+  box-shadow: var(--surface-shadow-hover);
+  transform: translateY(-2px);
 }
 
 .header {
@@ -26,7 +37,8 @@
   background: rgba(99, 102, 241, 0.15);
   color: var(--accent-secondary);
   padding: 0.2rem 0.5rem;
-  border-radius: 10px;
+  border: 1px solid rgba(129, 140, 248, 0.25);
+  border-radius: 999px;
   margin-left: auto;
   font-weight: 500;
 }
@@ -36,9 +48,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px dashed var(--border-color);
-  border-radius: 12px;
-  background: var(--bg-secondary);
+  border: 1px dashed rgba(129, 140, 248, 0.34);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(99, 102, 241, 0.055), transparent),
+    var(--bg-secondary);
   cursor: pointer;
   transition: all 0.2s ease;
   min-height: 200px;
@@ -47,7 +61,10 @@
 .dropzone:hover,
 .dropzone.dragging {
   border-color: var(--accent-primary);
-  background: rgba(99, 102, 241, 0.05);
+  background:
+    linear-gradient(180deg, rgba(99, 102, 241, 0.1), rgba(6, 182, 212, 0.035)),
+    var(--bg-secondary);
+  box-shadow: inset 0 0 0 1px rgba(129, 140, 248, 0.1);
 }
 
 .input {
@@ -62,6 +79,12 @@
 .uploadIcon {
   color: var(--accent-primary);
   margin-bottom: 1rem;
+  filter: drop-shadow(0 8px 20px var(--accent-glow));
+  transition: transform var(--transition-smooth);
+}
+
+.dropzone:hover .uploadIcon {
+  transform: translateY(-2px);
 }
 
 .dropText {
@@ -108,6 +131,7 @@
   background: rgba(34, 197, 94, 0.1);
   border: 1px solid rgba(34, 197, 94, 0.3);
   border-radius: 8px;
+  box-shadow: 0 10px 28px rgba(34, 197, 94, 0.08);
 }
 
 .successIcon {
@@ -173,7 +197,7 @@
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  background: var(--accent-primary);
+  background: var(--gradient-1);
   color: white;
   border: none;
   padding: 0.5rem 0.875rem;
@@ -181,11 +205,13 @@
   font-size: 0.8rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  box-shadow: 0 10px 24px var(--accent-glow);
+  transition: transform var(--transition-smooth), box-shadow var(--transition-smooth), filter var(--transition-smooth);
 }
 
 .saveBtn:hover {
-  background: var(--accent-secondary);
+  filter: brightness(1.08);
+  box-shadow: 0 12px 30px var(--accent-glow);
   transform: translateY(-1px);
 }
 
@@ -208,7 +234,7 @@
 .modalOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: var(--modal-scrim);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -224,7 +250,7 @@
 .modal {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
-  border-radius: 16px;
+  border-radius: 8px;
   padding: 1.5rem;
   width: 90%;
   max-width: 400px;
@@ -276,6 +302,7 @@
 .selectInput:focus {
   outline: none;
   border-color: var(--accent-primary);
+  box-shadow: var(--focus-ring);
 }
 
 .selectInput {
@@ -318,7 +345,7 @@
   justify-content: center;
   gap: 0.4rem;
   padding: 0.75rem;
-  background: var(--accent-primary);
+  background: var(--gradient-1);
   border: none;
   border-radius: 8px;
   color: white;
@@ -329,7 +356,8 @@
 }
 
 .confirmSaveBtn:hover:not(:disabled) {
-  background: var(--accent-secondary);
+  filter: brightness(1.08);
+  transform: translateY(-1px);
 }
 
 .confirmSaveBtn:disabled {
