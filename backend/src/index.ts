@@ -9,6 +9,7 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const HOST = process.env.HOST || '0.0.0.0';
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const SCORE_RATE_LIMIT_WINDOW_MS = Number(process.env.SCORE_RATE_LIMIT_WINDOW_MS || 60 * 60 * 1000);
 const SCORE_RATE_LIMIT_MAX = Number(process.env.SCORE_RATE_LIMIT_MAX || 10);
@@ -27,6 +28,7 @@ interface User {
 }
 
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface User {
       id: string;
@@ -90,7 +92,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
     };
     done(null, user);
   }));
-} else {
+} else if (process.env.MOCK_SCORE_RESUME !== 'true') {
   console.warn('⚠️  Google OAuth not configured. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in .env');
 }
 
@@ -263,12 +265,6 @@ app.post('/api/score-resume', async (req, res) => {
     return;
   }
 
-  const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) {
-    res.status(500).json({ error: 'Groq API key is not configured on the server.' });
-    return;
-  }
-
   const {
     resumeText,
     jobDescription = '',
@@ -293,6 +289,26 @@ app.post('/api/score-resume', async (req, res) => {
   const role = ROLE_LABELS[roleType] || roleType || 'General';
   const experience = EXPERIENCE_LABELS[experienceLevel] || experienceLevel || 'Not specified';
   const hasJobDescription = jobDescription.trim().length > 0;
+
+  if (process.env.MOCK_SCORE_RESUME === 'true') {
+    res.json({
+      score: 'very_good',
+      percentage: 78,
+      summary: `Mock scoring result for ${role} at ${experience}.`,
+      strengths: ['Relevant technical skills', 'Clear project experience'],
+      improvements: ['Add more quantified impact'],
+      keywordMatches: ['React', 'TypeScript', 'Testing'],
+      missingKeywords: hasJobDescription ? ['CI/CD'] : [],
+    } satisfies ScoringResult);
+    return;
+  }
+
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) {
+    res.status(500).json({ error: 'Groq API key is not configured on the server.' });
+    return;
+  }
+
   const userContent = hasJobDescription
     ? `RESUME:\n${resumeText}\n\n---\n\nJOB DESCRIPTION:\n${jobDescription}`
     : `RESUME:\n${resumeText}\n\n---\n\nNote: No specific job description was provided. Please evaluate the resume based on general best practices for a ${role} at ${experience} level.`;
@@ -358,7 +374,7 @@ app.get('/health', (_req, res) => {
   res.json({ status: 'ok' });
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 Backend server running on http://localhost:${PORT}`);
+app.listen(Number(PORT), HOST, () => {
+  console.log(`🚀 Backend server running on http://${HOST}:${PORT}`);
   console.log(`📍 Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:5173'}`);
 });

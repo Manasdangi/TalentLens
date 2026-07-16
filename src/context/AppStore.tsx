@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import {
   createContext,
   useContext,
@@ -14,6 +15,7 @@ import {
   saveResume as saveResumeToDb,
   deleteResume as deleteResumeFromDb,
 } from '../services/resumeService';
+import { getE2EUser, isE2EMode, setE2EUser } from '../utils/e2eMode';
 import { getErrorMessage } from '../utils/getErrorMessage';
 import type { SavedResume, ResumeCategory } from '../types/resume';
 import type { User, UserType } from './slices/UserSlice';
@@ -33,8 +35,8 @@ const USER_STORAGE_KEY = 'talentlens_user';
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   // --- User state ---
-  const [user, setUser] = useState<User | null>(null);
-  const [authLoading, setAuthLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(() => getE2EUser());
+  const [authLoading, setAuthLoading] = useState(!isE2EMode());
 
   // --- Resume state ---
   const [savedResumes, setSavedResumes] = useState<SavedResume[]>([]);
@@ -44,6 +46,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   // Auth: listen to Firebase
   useEffect(() => {
+    if (isE2EMode()) {
+      setAuthLoading(false);
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         try {
@@ -79,6 +86,18 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = useCallback(async () => {
+    if (isE2EMode()) {
+      const testUser: User = {
+        id: 'e2e-candidate',
+        name: 'E2E Candidate',
+        email: 'candidate@example.com',
+        userType: 'candidate',
+      };
+      setUser(testUser);
+      setE2EUser(testUser);
+      return;
+    }
+
     try {
       await signInWithPopup(auth, googleProvider);
     } catch (error: unknown) {
@@ -103,6 +122,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const logout = useCallback(async () => {
+    if (isE2EMode()) {
+      setUser(null);
+      setE2EUser(null);
+      return;
+    }
+
     try {
       await firebaseSignOut(auth);
       setUser(null);
@@ -117,6 +142,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (!user) {
       throw new Error('User must be logged in to set user type');
     }
+    if (isE2EMode()) {
+      const updatedUser: User = { ...user, userType };
+      setUser(updatedUser);
+      setE2EUser(updatedUser);
+      return;
+    }
+
     try {
       const profile = await createOrUpdateUserProfile(
         user.id,

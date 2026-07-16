@@ -12,6 +12,13 @@ import { db } from '../config/firebase';
 import type { SavedResume, ResumeCategory } from '../types/resume';
 import { MAX_SAVED_RESUMES } from '../types/resume';
 import { syncResumeByRole, removeResumeFromByRole } from './resumeByRoleService';
+import {
+  deleteE2EResume,
+  getAllE2EResumes,
+  getE2EResumes,
+  isE2EMode,
+  saveE2EResume,
+} from '../utils/e2eMode';
 
 const COLLECTION_NAME = 'Resumes';
 
@@ -22,6 +29,10 @@ interface UserResumesDoc {
 }
 
 export async function getUserResumes(userId: string): Promise<SavedResume[]> {
+  if (isE2EMode()) {
+    return getE2EResumes(userId);
+  }
+
   const q = query(collection(db, COLLECTION_NAME), where('userId', '==', userId));
   const snapshot = await getDocs(q);
   const byId = new Map<string, SavedResume>();
@@ -50,6 +61,10 @@ export async function getUserResumes(userId: string): Promise<SavedResume[]> {
 }
 
 export async function getResume(resumeId: string): Promise<SavedResume | null> {
+  if (isE2EMode()) {
+    return getAllE2EResumes().find((resume) => resume.id === resumeId) ?? null;
+  }
+
   const resumeDocRef = doc(db, COLLECTION_NAME, resumeId);
   const snapshot = await getDoc(resumeDocRef);
 
@@ -66,6 +81,10 @@ export async function getResume(resumeId: string): Promise<SavedResume | null> {
 }
 
 export async function getResumeForUser(userId: string, resumeId: string): Promise<SavedResume | null> {
+  if (isE2EMode()) {
+    return getE2EResumes(userId).find((resume) => resume.id === resumeId) ?? null;
+  }
+
   const resume = await getResume(resumeId);
   if (resume) {
     return resume;
@@ -104,6 +123,10 @@ export async function saveResume(
   existingId?: string,
   options?: SaveResumeOptions
 ): Promise<SavedResume> {
+  if (isE2EMode()) {
+    return saveE2EResume(userId, category, label, content, fileName, existingId, options);
+  }
+
   console.info('[resumeService] saveResume started', {
     userId,
     category,
@@ -219,6 +242,11 @@ export async function saveResume(
 }
 
 export async function deleteResume(userId: string, resumeId: string): Promise<void> {
+  if (isE2EMode()) {
+    deleteE2EResume(userId, resumeId);
+    return;
+  }
+
   const existingResumes = await getUserResumes(userId);
   const resume = existingResumes.find(r => r.id === resumeId);
   if (!resume) {

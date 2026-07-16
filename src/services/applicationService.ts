@@ -8,6 +8,7 @@ import {
 } from 'firebase/firestore';
 import { db, auth } from '../config/firebase';
 import type { JobApplication } from '../types/jobApplication';
+import { createE2EApplication, getE2EApplications, isE2EMode } from '../utils/e2eMode';
 
 const COLLECTION_NAME = 'JobApplications';
 
@@ -20,6 +21,28 @@ export async function applyForJob(
   resumeLabel: string,
   fileName: string
 ): Promise<JobApplication> {
+  if (isE2EMode()) {
+    const id = `${jobId}_${candidateId}`;
+    const alreadyApplied = getE2EApplications(candidateId).some((app) => app.jobId === jobId);
+    if (alreadyApplied) {
+      throw new Error('You have already applied for this job.');
+    }
+
+    const application: JobApplication = {
+      id,
+      jobId,
+      candidateId,
+      candidateEmail,
+      candidateName,
+      resumeId,
+      resumeLabel,
+      fileName,
+      appliedAt: Date.now(),
+    };
+    createE2EApplication(application);
+    return application;
+  }
+
   const uid = auth.currentUser?.uid;
   if (!uid) {
     throw new Error('You must be signed in to apply.');
@@ -53,6 +76,10 @@ export async function applyForJob(
 }
 
 export async function getApplicationsByJob(jobId: string): Promise<JobApplication[]> {
+  if (isE2EMode()) {
+    return getE2EApplications().filter((app) => app.jobId === jobId);
+  }
+
   const q = query(
     collection(db, COLLECTION_NAME),
     where('jobId', '==', jobId)
@@ -63,6 +90,10 @@ export async function getApplicationsByJob(jobId: string): Promise<JobApplicatio
 }
 
 export async function getMyApplications(candidateId: string): Promise<JobApplication[]> {
+  if (isE2EMode()) {
+    return getE2EApplications(candidateId);
+  }
+
   const q = query(
     collection(db, COLLECTION_NAME),
     where('candidateId', '==', candidateId)

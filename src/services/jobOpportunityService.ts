@@ -10,10 +10,23 @@ import {
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import type { JobOpportunity, JobOpportunityFormData } from '../types/jobOpportunity';
+import {
+  createE2EJob,
+  deactivateE2EJob,
+  deleteE2EJob,
+  getE2EJob,
+  getE2EJobs,
+  isE2EMode,
+  updateE2EJob,
+} from '../utils/e2eMode';
 
 const COLLECTION_NAME = 'JobOpportunities';
 
 export async function getJobOpportunities(recruiterId?: string): Promise<JobOpportunity[]> {
+  if (isE2EMode()) {
+    return getE2EJobs(recruiterId);
+  }
+
   let q;
   
   if (recruiterId) {
@@ -36,6 +49,10 @@ export async function getJobOpportunities(recruiterId?: string): Promise<JobOppo
 }
 
 export async function getJobOpportunity(jobId: string): Promise<JobOpportunity | null> {
+  if (isE2EMode()) {
+    return getE2EJob(jobId);
+  }
+
   const jobDocRef = doc(db, COLLECTION_NAME, jobId);
   const snapshot = await getDoc(jobDocRef);
   
@@ -50,6 +67,10 @@ export async function createJobOpportunity(
   recruiterId: string,
   formData: JobOpportunityFormData
 ): Promise<JobOpportunity> {
+  if (isE2EMode()) {
+    return createE2EJob(recruiterId, formData);
+  }
+
   const now = Date.now();
   const jobId = `${recruiterId}_${now}`;
   
@@ -92,6 +113,11 @@ export async function updateJobOpportunity(
   jobId: string,
   formData: Partial<JobOpportunityFormData>
 ): Promise<void> {
+  if (isE2EMode()) {
+    updateE2EJob(jobId, formData);
+    return;
+  }
+
   const jobDocRef = doc(db, COLLECTION_NAME, jobId);
   const existingJob = await getJobOpportunity(jobId);
   
@@ -128,11 +154,21 @@ export async function updateJobOpportunity(
 }
 
 export async function deleteJobOpportunity(jobId: string): Promise<void> {
+  if (isE2EMode()) {
+    deleteE2EJob(jobId);
+    return;
+  }
+
   const jobDocRef = doc(db, COLLECTION_NAME, jobId);
   await deleteDoc(jobDocRef);
 }
 
 export async function deactivateJobOpportunity(jobId: string): Promise<void> {
+  if (isE2EMode()) {
+    deactivateE2EJob(jobId);
+    return;
+  }
+
   const jobDocRef = doc(db, COLLECTION_NAME, jobId);
   await setDoc(jobDocRef, { isActive: false, updatedAt: Date.now() }, { merge: true });
 }

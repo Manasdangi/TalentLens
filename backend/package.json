@@ -1,6 +1,7 @@
 {
   "name": "talentlens-backend",
   "version": "1.0.0",
+  "private": true,
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
@@ -26,4 +27,3 @@
     "typescript": "^5.6.0"
   }
 }
-

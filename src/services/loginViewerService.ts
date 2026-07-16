@@ -11,6 +11,7 @@ import {
   type Unsubscribe,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
+import { isE2EMode } from '../utils/e2eMode';
 
 const COLLECTION_NAME = 'LoginPageViewers';
 const ALL_TIME_COLLECTION_NAME = 'LoginPageAllTimeViewers';
@@ -75,6 +76,11 @@ export function subscribeToLoginViewerCount(
   onCountChange: (counts: LoginViewerCounts) => void,
   onError?: (error: Error) => void
 ): Unsubscribe {
+  if (isE2EMode()) {
+    onCountChange({ onlineCount: 0, allTimeCount: 0 });
+    return () => undefined;
+  }
+
   const sessionId = getViewerSessionId();
   const viewerDocRef = doc(db, COLLECTION_NAME, sessionId);
   const viewersCollectionRef = collection(db, COLLECTION_NAME);

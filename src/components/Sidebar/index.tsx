@@ -85,7 +85,7 @@ export function Sidebar({ isOpen, onClose, user, userType, onLogin, onLogout, on
               onClick={async () => {
                 try {
                   await onLogin();
-                } catch (error) {
+                } catch {
                   // Error is already logged in AppStore
                 }
               }}
@@ -156,4 +156,3 @@ export function Sidebar({ isOpen, onClose, user, userType, onLogin, onLogout, on
     </>
   );
 }
-
