@@ -1,12 +1,15 @@
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { Header } from '../components/Header';
 import { JobOpportunityUploader } from '../components/JobOpportunityUploader';
-import { JobOpportunitiesScreen } from './JobOpportunitiesScreen';
 import { Modal } from '../components/ui/Modal';
 import { Footer } from '../components/Footer';
 import type { SavedResume } from '../types/resume';
 import type { JobOpportunity } from '../types/jobOpportunity';
 import styles from '../App.module.css';
+
+const JobOpportunitiesScreen = lazy(() =>
+  import('./JobOpportunitiesScreen').then((module) => ({ default: module.JobOpportunitiesScreen }))
+);
 
 interface RecruiterViewProps {
   onResumeSelect: (content: string, fileName: string, savedResume?: SavedResume | null) => void;
@@ -67,12 +70,14 @@ export function RecruiterView({
       </button>
       <main className={styles.main}>
         {showJobOpportunitiesScreen ? (
-          <JobOpportunitiesScreen
-            onBack={onCloseJobOpportunitiesScreen}
-            recruiterId={recruiterId}
-            refreshTrigger={recruiterJobsRefreshTrigger}
-            onEditJob={setJobToEdit}
-          />
+          <Suspense fallback={<div className={styles.loading}>Loading your jobs...</div>}>
+            <JobOpportunitiesScreen
+              onBack={onCloseJobOpportunitiesScreen}
+              recruiterId={recruiterId}
+              refreshTrigger={recruiterJobsRefreshTrigger}
+              onEditJob={setJobToEdit}
+            />
+          </Suspense>
         ) : (
           <>
             <p className={styles.recruiterHomeHint}>

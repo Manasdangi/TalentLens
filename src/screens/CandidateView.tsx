@@ -1,13 +1,16 @@
-import { useRef, useEffect } from 'react';
+import { lazy, Suspense, useRef, useEffect } from 'react';
 import { Header } from '../components/Header';
 import { InputSection } from '../components/InputSection';
 import { AnalysisResults } from '../components/AnalysisResults';
-import { JobOpportunitiesScreen } from './JobOpportunitiesScreen';
 import { Footer } from '../components/Footer';
 import type { SavedResume } from '../types/resume';
 import type { ScoringResult } from '../services/llmScorer';
 import type { RoleType, ExperienceLevel } from '../constants';
 import styles from '../App.module.css';
+
+const JobOpportunitiesScreen = lazy(() =>
+  import('./JobOpportunitiesScreen').then((module) => ({ default: module.JobOpportunitiesScreen }))
+);
 
 interface CandidateViewProps {
   resumeText: string;
@@ -77,7 +80,9 @@ export function CandidateView({
 
       <main className={styles.main}>
         {showJobOpportunitiesScreen ? (
-          <JobOpportunitiesScreen onBack={onCloseJobOpportunitiesScreen} />
+          <Suspense fallback={<div className={styles.loading}>Loading job opportunities...</div>}>
+            <JobOpportunitiesScreen onBack={onCloseJobOpportunitiesScreen} />
+          </Suspense>
         ) : (
           <>
             <InputSection

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { lazy, Suspense, useState, useEffect } from 'react';
 import { UserTypeSelection } from './components/UserTypeSelection';
 import { CandidateLoginScreen } from './components/CandidateLoginScreen';
 import { RESUME_INPUT_SECTION_ID } from './components/InputSection';
@@ -7,8 +7,12 @@ import { scoreResume, type ScoringResult } from './services/llmScorer';
 import { getErrorMessage } from './utils/getErrorMessage';
 import type { RoleType, ExperienceLevel } from './constants';
 import type { SavedResume } from './types/resume';
-import { CandidateView, RecruiterView } from './screens';
+import { CandidateView } from './screens/CandidateView';
 import styles from './App.module.css';
+
+const RecruiterView = lazy(() =>
+  import('./screens/RecruiterView').then((module) => ({ default: module.RecruiterView }))
+);
 
 function App() {
   const { user, setUserType } = useAuth();
@@ -105,23 +109,25 @@ function App() {
 
   if (user.userType === 'recruiter') {
     return (
-      <RecruiterView
-        onResumeSelect={handleResumeSelect}
-        currentResumeText={resumeText}
-        onScrollToResumeSection={scrollToResumeSection}
-        onOpenJobOpportunities={openJobOpportunitiesScreen}
-        showJobOpportunitiesScreen={showJobOpportunitiesScreen}
-        onCloseJobOpportunitiesScreen={closeJobOpportunitiesScreen}
-        recruiterId={user.id}
-        recruiterJobsRefreshTrigger={recruiterJobsRefreshTrigger}
-        showPostJobModal={showPostJobModal}
-        onOpenPostJobModal={() => setShowPostJobModal(true)}
-        onClosePostJobModal={() => setShowPostJobModal(false)}
-        onJobPosted={() => {
-          setRecruiterJobsRefreshTrigger((t) => t + 1);
-          setShowPostJobModal(false);
-        }}
-      />
+      <Suspense fallback={<div className={styles.loading}>Loading recruiter workspace...</div>}>
+        <RecruiterView
+          onResumeSelect={handleResumeSelect}
+          currentResumeText={resumeText}
+          onScrollToResumeSection={scrollToResumeSection}
+          onOpenJobOpportunities={openJobOpportunitiesScreen}
+          showJobOpportunitiesScreen={showJobOpportunitiesScreen}
+          onCloseJobOpportunitiesScreen={closeJobOpportunitiesScreen}
+          recruiterId={user.id}
+          recruiterJobsRefreshTrigger={recruiterJobsRefreshTrigger}
+          showPostJobModal={showPostJobModal}
+          onOpenPostJobModal={() => setShowPostJobModal(true)}
+          onClosePostJobModal={() => setShowPostJobModal(false)}
+          onJobPosted={() => {
+            setRecruiterJobsRefreshTrigger((t) => t + 1);
+            setShowPostJobModal(false);
+          }}
+        />
+      </Suspense>
     );
   }
 

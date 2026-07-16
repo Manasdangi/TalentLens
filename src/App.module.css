@@ -12,6 +12,14 @@
   padding: 2rem;
 }
 
+.loading {
+  width: 100%;
+  padding: 2rem;
+  color: var(--text-secondary);
+  text-align: center;
+  font-size: 0.9375rem;
+}
+
 /* Container for "See latest openings" button (no strip) */
 .seeLatestOpeningsBar {
   display: flex;

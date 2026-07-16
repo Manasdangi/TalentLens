@@ -1,6 +1,5 @@
 import { useCallback, useState } from 'react';
 import { Upload, FileText, X, CheckCircle, Save, Loader2 } from 'lucide-react';
-import { extractTextFromPDF } from '../../utils/pdfExtractor';
 import { useResumes } from '../../context/AppStore';
 import { useAuth } from '../../context/AppStore';
 import type { ResumeCategory } from '../../types/resume';
@@ -45,6 +44,7 @@ export function ResumeUploader({ onTextExtracted, extractedText, selectedRole, s
     setSaveSuccess(false);
 
     try {
+      const { extractTextFromPDF } = await import('../../utils/pdfExtractor');
       const text = await extractTextFromPDF(file);
       onTextExtracted(text);
     } catch (err) {
