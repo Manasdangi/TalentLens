@@ -1,11 +1,10 @@
+import * as Sentry from '@sentry/node';
 import express, { type RequestHandler } from 'express';
 import cors from 'cors';
 import session from 'express-session';
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
-import dotenv from 'dotenv';
 
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -333,6 +332,17 @@ app.post('/api/score-resume', async (req, res) => {
 
     if (!groqResponse.ok) {
       const errorBody = await groqResponse.text();
+      Sentry.captureMessage('Groq request failed', {
+        level: 'error',
+        tags: {
+          route: 'score-resume',
+          upstream: 'groq',
+          upstream_status: String(groqResponse.status),
+        },
+        extra: {
+          body: errorBody,
+        },
+      });
       console.error('[score-resume] Groq request failed', {
         status: groqResponse.status,
         body: errorBody,
@@ -364,6 +374,11 @@ app.post('/api/score-resume', async (req, res) => {
 
     res.json(parsed);
   } catch (error) {
+    Sentry.captureException(error, {
+      tags: {
+        route: 'score-resume',
+      },
+    });
     console.error('[score-resume] Unexpected scoring error', error);
     res.status(500).json({ error: 'Failed to analyze resume.' });
   }
@@ -373,6 +388,14 @@ app.post('/api/score-resume', async (req, res) => {
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok' });
 });
+
+if (process.env.SENTRY_TEST_ROUTE_ENABLED === 'true') {
+  app.get('/debug-sentry', () => {
+    throw new Error('Sentry backend test error');
+  });
+}
+
+Sentry.setupExpressErrorHandler(app);
 
 app.listen(Number(PORT), HOST, () => {
   console.log(`🚀 Backend server running on http://${HOST}:${PORT}`);

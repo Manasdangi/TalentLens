@@ -20,7 +20,7 @@ export default defineConfig({
   },
   webServer: [
     {
-      command: 'node backend/dist/index.js',
+      command: 'node --import ./backend/dist/instrument.js backend/dist/index.js',
       url: `${backendUrl}/health`,
       reuseExistingServer: !process.env.CI,
       timeout: 120_000,

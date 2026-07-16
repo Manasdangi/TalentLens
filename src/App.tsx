@@ -5,6 +5,7 @@ import { RESUME_INPUT_SECTION_ID } from './components/InputSection';
 import { useAuth } from './context/AppStore';
 import { scoreResume, type ScoringResult } from './services/llmScorer';
 import { getErrorMessage } from './utils/getErrorMessage';
+import { setSentryUserContext, Sentry } from './sentry';
 import type { RoleType, ExperienceLevel } from './constants';
 import type { SavedResume } from './types/resume';
 import { CandidateView } from './screens/CandidateView';
@@ -37,6 +38,10 @@ function App() {
     }
   }, [user]);
 
+  useEffect(() => {
+    setSentryUserContext(user ? { id: user.id, userType: user.userType } : null);
+  }, [user]);
+
   const handleAnalyze = async () => {
     if (resumeText.length === 0) return;
 
@@ -53,6 +58,7 @@ function App() {
       );
       setResult(scoringResult);
     } catch (err) {
+      Sentry.captureException(err);
       setError(getErrorMessage(err, 'Failed to analyze resume'));
       console.error(err);
     } finally {
@@ -81,6 +87,7 @@ function App() {
       await setUserType(userType);
       setShowUserTypeModal(false);
     } catch (err) {
+      Sentry.captureException(err);
       console.error('Failed to set user type:', err);
       setError(getErrorMessage(err, 'Failed to set user type. Please try again.'));
     }

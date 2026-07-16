@@ -50,3 +50,5 @@ The report shows the exact step, console output, request failures, and the page 
 The E2E suite runs the frontend with `VITE_E2E_MODE=true`. That bypasses Google/Firebase auth and uses local browser storage fixtures, so tests are stable and do not change production data.
 
 The backend runs with `MOCK_SCORE_RESUME=true`, so scoring tests do not call Groq or spend API quota.
+
+Sentry is also disabled during E2E runs, so automation does not create test issues or replays.
