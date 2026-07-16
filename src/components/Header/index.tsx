@@ -24,7 +24,7 @@ export function Header({ onResumeSelect, currentResumeText, onScrollToResumeSect
             </div>
             <span className={styles.logoText}>TalentLens</span>
           </div>
-          <p className={styles.tagline}>AI-Powered Resume Scoring</p>
+          <p className={styles.tagline}>AI-Powered Career & Hiring Platform</p>
         </div>
 
         <div className={styles.right}>

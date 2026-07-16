@@ -48,7 +48,7 @@ export function CandidateLoginScreen() {
             <Sparkles size={32} />
           </div>
           <h1 className={styles.title}>TalentLens</h1>
-          <p className={styles.tagline}>AI-Powered Resume Scoring</p>
+          <p className={styles.tagline}>AI-Powered Career & Hiring Platform</p>
           {viewerCounts !== null && (
             <div className={styles.viewerCount} aria-live="polite">
               <Eye size={16} />
