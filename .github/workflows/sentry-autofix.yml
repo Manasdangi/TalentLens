@@ -1,4 +1,4 @@
-name: Daily Sentry Codex Review
+name: Daily Sentry Report for Codex
 
 on:
   schedule:
@@ -11,24 +11,22 @@ on:
         required: false
         type: string
       max_issues:
-        description: Maximum issues to analyze (1-20)
+        description: Maximum issues to report (1-20)
         required: false
         default: '10'
         type: string
 
 concurrency:
-  group: daily-sentry-codex-review
+  group: daily-sentry-report
   cancel-in-progress: false
 
 jobs:
-  autofix:
+  collect:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 10
     permissions:
       contents: read
-      pull-requests: read
     outputs:
-      has_changes: ${{ steps.capture.outputs.has_changes }}
       issue_count: ${{ steps.sentry.outputs.issue_count }}
       report_date: ${{ steps.window.outputs.report_date }}
     env:
@@ -38,13 +36,10 @@ jobs:
       - name: Check out the repository
         uses: actions/checkout@v5
         with:
-          fetch-depth: 0
           persist-credentials: false
 
-      - name: Select completed IST window and deduplicate
+      - name: Select completed IST window
         id: window
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
           if [[ -n "$REPORT_DATE_INPUT" ]]; then
             report_date="$REPORT_DATE_INPUT"
@@ -59,18 +54,9 @@ jobs:
             exit 1
           fi
 
-          branch="codex/sentry-daily-$report_date"
-          existing_pr="$(gh pr list --state all --head "$branch" --json number --jq 'length')"
-          if [[ "$existing_pr" != "0" ]] || git ls-remote --exit-code --heads origin "$branch" >/dev/null 2>&1; then
-            echo "A branch or PR already exists for the $report_date Sentry review."
-            echo "should_run=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "should_run=true" >> "$GITHUB_OUTPUT"
-          fi
           echo "report_date=$report_date" >> "$GITHUB_OUTPUT"
 
       - name: Fetch sanitized daily Sentry context
-        if: steps.window.outputs.should_run == 'true'
         id: sentry
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
@@ -83,155 +69,70 @@ jobs:
         run: node .github/scripts/fetch-sentry-daily-context.mjs
 
       - name: Report an empty daily window
-        if: steps.window.outputs.should_run == 'true' && steps.sentry.outputs.issue_count == '0'
+        if: steps.sentry.outputs.issue_count == '0'
         run: cat .sentry-daily-summary.md >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Set up Node.js
-        if: steps.window.outputs.should_run == 'true' && steps.sentry.outputs.issue_count != '0'
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: yarn
-          cache-dependency-path: |
-            yarn.lock
-            backend/yarn.lock
-
-      - name: Install dependencies
-        if: steps.window.outputs.should_run == 'true' && steps.sentry.outputs.issue_count != '0'
-        run: |
-          yarn install --frozen-lockfile
-          yarn --cwd backend install --frozen-lockfile
-
-      - name: Run Codex once for the daily issue batch
-        if: steps.window.outputs.should_run == 'true' && steps.sentry.outputs.issue_count != '0'
-        id: run_codex
-        uses: openai/codex-action@v1
-        with:
-          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
-          prompt-file: .github/codex/prompts/sentry-autofix.md
-          output-file: codex-output.md
-          sandbox: workspace-write
-          safety-strategy: drop-sudo
-          effort: medium
-          codex-args: '["--ephemeral"]'
-
-      - name: Capture combined proposed patch
-        if: steps.window.outputs.should_run == 'true' && steps.sentry.outputs.issue_count != '0'
-        id: capture
-        run: |
-          artifact_dir="/tmp/sentry-daily-autofix"
-          mkdir -p "$artifact_dir"
-          mv codex-output.md "$artifact_dir/codex-output.md"
-          mv .sentry-daily-summary.md "$artifact_dir/sentry-summary.md"
-          rm -f .sentry-daily-context.md
-
-          git add -N .
-          git diff --binary > "$artifact_dir/sentry-autofix.patch"
-
-          patch_size="$(wc -c < "$artifact_dir/sentry-autofix.patch")"
-          if (( patch_size > 1048576 )); then
-            echo "Codex patch exceeds the 1 MiB safety limit."
-            exit 1
-          fi
-
-          if [[ -s "$artifact_dir/sentry-autofix.patch" ]]; then
-            echo "has_changes=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "has_changes=false" >> "$GITHUB_OUTPUT"
-            cat "$artifact_dir/sentry-summary.md" >> "$GITHUB_STEP_SUMMARY"
-            cat "$artifact_dir/codex-output.md" >> "$GITHUB_STEP_SUMMARY"
-          fi
-
-      - name: Upload combined proposed patch
-        if: steps.capture.outputs.has_changes == 'true'
+      - name: Upload sanitized report
+        if: steps.sentry.outputs.issue_count != '0'
         uses: actions/upload-artifact@v4
         with:
-          name: sentry-daily-${{ steps.window.outputs.report_date }}
-          path: /tmp/sentry-daily-autofix/
-          retention-days: 7
+          name: sentry-daily-report-${{ steps.window.outputs.report_date }}
+          path: .sentry-daily-issue.md
+          include-hidden-files: true
+          retention-days: 3
 
-  publish:
-    needs: autofix
-    if: needs.autofix.outputs.has_changes == 'true'
+  publish-report:
+    needs: collect
+    if: needs.collect.outputs.issue_count != '0'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 5
     permissions:
-      contents: write
-      pull-requests: write
+      contents: read
+      issues: write
     env:
-      REPORT_DATE: ${{ needs.autofix.outputs.report_date }}
-      ISSUE_COUNT: ${{ needs.autofix.outputs.issue_count }}
+      REPORT_DATE: ${{ needs.collect.outputs.report_date }}
+      ISSUE_COUNT: ${{ needs.collect.outputs.issue_count }}
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
 
     steps:
-      - name: Check out the repository
-        uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-
-      - name: Download combined proposed patch
+      - name: Download sanitized report
         uses: actions/download-artifact@v4
         with:
-          name: sentry-daily-${{ env.REPORT_DATE }}
-          path: /tmp/sentry-daily-autofix
+          name: sentry-daily-report-${{ env.REPORT_DATE }}
+          path: /tmp/sentry-daily-report
 
-      - name: Apply and validate proposed patch
+      - name: Create one daily GitHub issue
         run: |
-          patch_file="/tmp/sentry-daily-autofix/sentry-autofix.patch"
-          git apply --check "$patch_file"
-          node .github/scripts/validate-autofix-changes.mjs "$patch_file"
-          git apply "$patch_file"
+          report_label="sentry-daily-review"
+          reviewed_label="codex-reviewed"
+          title="[Sentry] Daily review $REPORT_DATE"
+          body="/tmp/sentry-daily-report/.sentry-daily-issue.md"
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: yarn
-          cache-dependency-path: |
-            yarn.lock
-            backend/yarn.lock
+          gh label create "$report_label" \
+            --color "B60205" \
+            --description "Sanitized daily production telemetry for Codex review" \
+            --force
+          gh label create "$reviewed_label" \
+            --color "0E8A16" \
+            --description "Daily Sentry report reviewed by Codex" \
+            --force
 
-      - name: Install dependencies
-        run: |
-          yarn install --frozen-lockfile
-          yarn --cwd backend install --frozen-lockfile
+          existing_issue="$(
+            gh issue list \
+              --state all \
+              --label "$report_label" \
+              --limit 100 \
+              --json number,title \
+              --jq ".[] | select(.title == \"$title\") | .number" \
+              | head -n 1
+          )"
 
-      - name: Verify combined fixes
-        run: |
-          yarn build
-          yarn test:unit
-          yarn --cwd backend build
+          if [[ -n "$existing_issue" ]]; then
+            echo "Issue #$existing_issue already contains the $REPORT_DATE report." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
 
-      - name: Create one daily draft pull request
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          branch="codex/sentry-daily-$REPORT_DATE"
-          title="fix: daily Sentry review $REPORT_DATE"
-          report="/tmp/sentry-daily-autofix/codex-output.md"
-          summary="/tmp/sentry-daily-autofix/sentry-summary.md"
-          body="/tmp/sentry-daily-autofix/pr-body.md"
-
-          git config user.name "codex-autofix[bot]"
-          git config user.email "codex-autofix[bot]@users.noreply.github.com"
-          gh auth setup-git
-          git switch -c "$branch"
-          git add .
-          git commit -m "$title"
-          git push origin "HEAD:$branch"
-
-          {
-            printf 'Automated combined review of %s Sentry issue(s) for the 24-hour window ending at 12:20 PM IST on %s.\n\n' "$ISSUE_COUNT" "$REPORT_DATE"
-            cat "$summary"
-            printf '\n## Codex analysis\n\n'
-            head -c 10000 "$report"
-            printf '\n\n## Verification\n\n- `yarn build`\n- `yarn test:unit`\n- `yarn --cwd backend build`\n\n'
-            printf 'This draft PR was generated automatically and requires human review before merge.\n'
-          } > "$body"
-
-          gh pr create \
-            --draft \
-            --base "${{ github.event.repository.default_branch }}" \
-            --head "$branch" \
-            --title "$title" \
-            --body-file "$body"
+          issue_url="$(gh issue create --title "$title" --label "$report_label" --body-file "$body")"
+          printf 'Published [%s](%s) with %s qualifying Sentry issue(s).\n' \
+            "$title" "$issue_url" "$ISSUE_COUNT" >> "$GITHUB_STEP_SUMMARY"

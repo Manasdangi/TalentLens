@@ -17,7 +17,7 @@ playwright-report/
 test-results/
 .sentry-daily-context.md
 .sentry-daily-summary.md
-codex-output.md
+.sentry-daily-issue.md
 
 # Editor directories and files
 .vscode/*

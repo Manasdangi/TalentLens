@@ -67,4 +67,4 @@ Turn this route off after verification.
 
 ## Daily Automated Issue Review
 
-The optional 12:20 PM IST Sentry-to-Codex combined draft PR workflow is documented in [SENTRY_AUTOFIX.md](./SENTRY_AUTOFIX.md). It queries Sentry directly and does not require Gmail access or a backend webhook.
+The optional ChatGPT Plus daily review flow is documented in [SENTRY_AUTOFIX.md](./SENTRY_AUTOFIX.md). GitHub Actions publishes a sanitized Sentry issue at 12:20 PM IST, and a ChatGPT web scheduled task reviews it without OpenAI API billing, Gmail access, or a backend webhook.
