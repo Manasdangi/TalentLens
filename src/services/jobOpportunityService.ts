@@ -22,6 +22,17 @@ import {
 
 const COLLECTION_NAME = 'JobOpportunities';
 
+function parseLines(value?: string): string[] {
+  return value
+    ? value.split('\n').map(item => item.trim()).filter(item => item.length > 0)
+    : [];
+}
+
+function trimmedValue(value?: string): string | undefined {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : undefined;
+}
+
 export async function getJobOpportunities(recruiterId?: string): Promise<JobOpportunity[]> {
   if (isE2EMode()) {
     return getE2EJobs(recruiterId);
@@ -74,33 +85,23 @@ export async function createJobOpportunity(
   const now = Date.now();
   const jobId = `${recruiterId}_${now}`;
   
-  // Parse requirements and benefits from strings
-  const requirements = formData.requirements
-    .split('\n')
-    .map(r => r.trim())
-    .filter(r => r.length > 0);
-  
-  const benefits = formData.benefits
-    ? formData.benefits.split('\n').map(b => b.trim()).filter(b => b.length > 0)
-    : undefined;
-
   const jobOpportunity: JobOpportunity = {
     id: jobId,
     recruiterId,
-    recruiterEmail: formData.recruiterEmail,
-    title: formData.title,
-    company: formData.company,
-    description: formData.description,
+    recruiterEmail: formData.recruiterEmail.trim(),
+    title: formData.title.trim(),
+    company: formData.company.trim(),
+    description: formData.description.trim(),
     role: formData.role,
     experienceLevel: formData.experienceLevel,
-    location: formData.location,
-    salaryRange: formData.salaryRange,
-    requirements,
-    benefits,
-    applicationLink: formData.applicationLink,
+    requirements: parseLines(formData.requirements),
+    benefits: parseLines(formData.benefits),
     createdAt: now,
     updatedAt: now,
     isActive: true,
+    ...(trimmedValue(formData.location) && { location: trimmedValue(formData.location) }),
+    ...(trimmedValue(formData.salaryRange) && { salaryRange: trimmedValue(formData.salaryRange) }),
+    ...(trimmedValue(formData.applicationLink) && { applicationLink: trimmedValue(formData.applicationLink) }),
   };
 
   const jobDocRef = doc(db, COLLECTION_NAME, jobId);
@@ -127,27 +128,22 @@ export async function updateJobOpportunity(
 
   const updateData: Partial<JobOpportunity> = {
     updatedAt: Date.now(),
-    ...(formData.recruiterEmail !== undefined && { recruiterEmail: formData.recruiterEmail }),
-    ...(formData.title !== undefined && { title: formData.title }),
-    ...(formData.company !== undefined && { company: formData.company }),
-    ...(formData.description !== undefined && { description: formData.description }),
+    ...(formData.recruiterEmail !== undefined && { recruiterEmail: formData.recruiterEmail.trim() }),
+    ...(formData.title !== undefined && { title: formData.title.trim() }),
+    ...(formData.company !== undefined && { company: formData.company.trim() }),
+    ...(formData.description !== undefined && { description: formData.description.trim() }),
     ...(formData.role !== undefined && { role: formData.role }),
     ...(formData.experienceLevel !== undefined && { experienceLevel: formData.experienceLevel }),
-    ...(formData.location !== undefined && { location: formData.location }),
-    ...(formData.salaryRange !== undefined && { salaryRange: formData.salaryRange }),
-    ...(formData.applicationLink !== undefined && { applicationLink: formData.applicationLink }),
+    ...(formData.location !== undefined && { location: formData.location.trim() }),
+    ...(formData.salaryRange !== undefined && { salaryRange: formData.salaryRange.trim() }),
+    ...(formData.applicationLink !== undefined && { applicationLink: formData.applicationLink.trim() }),
   };
 
   if (formData.requirements !== undefined) {
-    updateData.requirements = formData.requirements
-      .split('\n')
-      .map(r => r.trim())
-      .filter(r => r.length > 0);
+    updateData.requirements = parseLines(formData.requirements);
   }
   if (formData.benefits !== undefined) {
-    updateData.benefits = formData.benefits
-      ? formData.benefits.split('\n').map(b => b.trim()).filter(b => b.length > 0)
-      : undefined;
+    updateData.benefits = parseLines(formData.benefits);
   }
 
   await setDoc(jobDocRef, updateData, { merge: true });

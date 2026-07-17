@@ -50,6 +50,12 @@ export function setE2EUser(user: User | null) {
 
 const now = 1_750_000_000_000;
 
+function parseLines(value?: string): string[] {
+  return value
+    ? value.split('\n').map((item) => item.trim()).filter(Boolean)
+    : [];
+}
+
 function defaultResumes(userId: string): SavedResume[] {
   return [
     {
@@ -135,8 +141,8 @@ export function createE2EJob(recruiterId: string, formData: JobOpportunityFormDa
     experienceLevel: formData.experienceLevel,
     location: formData.location,
     salaryRange: formData.salaryRange,
-    requirements: formData.requirements.split('\n').map((item) => item.trim()).filter(Boolean),
-    benefits: formData.benefits?.split('\n').map((item) => item.trim()).filter(Boolean),
+    requirements: parseLines(formData.requirements),
+    benefits: parseLines(formData.benefits),
     applicationLink: formData.applicationLink,
     createdAt,
     updatedAt: createdAt,
@@ -167,10 +173,10 @@ export function updateE2EJob(jobId: string, formData: Partial<JobOpportunityForm
     ...(formData.salaryRange !== undefined && { salaryRange: formData.salaryRange }),
     ...(formData.applicationLink !== undefined && { applicationLink: formData.applicationLink }),
     ...(formData.requirements !== undefined && {
-      requirements: formData.requirements.split('\n').map((item) => item.trim()).filter(Boolean),
+      requirements: parseLines(formData.requirements),
     }),
     ...(formData.benefits !== undefined && {
-      benefits: formData.benefits.split('\n').map((item) => item.trim()).filter(Boolean),
+      benefits: parseLines(formData.benefits),
     }),
     updatedAt: Date.now(),
   };
