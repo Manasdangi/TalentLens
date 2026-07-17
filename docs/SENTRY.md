@@ -64,3 +64,7 @@ curl http://localhost:3001/debug-sentry
 ```
 
 Turn this route off after verification.
+
+## Daily Automated Issue Review
+
+The optional 10 PM IST Sentry-to-Codex combined draft PR workflow is documented in [SENTRY_AUTOFIX.md](./SENTRY_AUTOFIX.md). It queries Sentry directly and does not require Gmail access or a backend webhook.
