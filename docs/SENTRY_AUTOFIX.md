@@ -1,11 +1,11 @@
 # Daily Sentry Codex Review
 
-TalentLens runs one scheduled Sentry review every day at 10 PM IST. The job queries Sentry directly, gives Codex a sanitized batch of the last 24 hours of unresolved errors, verifies any proposed changes, and opens at most one combined draft pull request.
+TalentLens runs one scheduled Sentry review every day at 12:20 PM IST. The job queries Sentry directly, gives Codex a sanitized batch of the last 24 hours of unresolved errors, verifies any proposed changes, and opens at most one combined draft pull request.
 
 Email access and the Express backend are not part of this automation:
 
 ```text
-GitHub Actions schedule: 10 PM IST
+GitHub Actions schedule: 12:20 PM IST
   -> Sentry Issues API: previous 24-hour window
   -> sanitized context for up to 10 unresolved error/fatal issues
   -> one Codex analysis pass
@@ -20,7 +20,7 @@ Operational incidents such as invalid credentials, missing environment variables
 
 Reading Sentry notification emails would require Gmail OAuth access, expose unrelated mailbox metadata, and add fragile HTML/thread parsing. The Sentry API provides structured issue IDs, levels, stack frames, projects, timestamps, and links using a read-only token.
 
-The daily window is fixed from 10 PM IST on the previous date through 10 PM IST on the report date. A deterministic branch named `codex/sentry-daily-YYYY-MM-DD` prevents duplicate PRs for the same window.
+The daily window is fixed from 12:20 PM IST on the previous date through 12:20 PM IST on the report date. A deterministic branch named `codex/sentry-daily-YYYY-MM-DD` prevents duplicate PRs for the same window.
 
 ## 1. Rotate Exposed Credentials
 
@@ -58,10 +58,10 @@ The workflow is `.github/workflows/sentry-autofix.yml` and uses:
 
 ```yaml
 schedule:
-  - cron: '30 16 * * *'
+  - cron: '50 6 * * *'
 ```
 
-GitHub cron is UTC, so `16:30 UTC` is `22:00 Asia/Kolkata`. Scheduled GitHub Actions may begin a few minutes late, but the queried Sentry window still ends at exactly 10 PM IST.
+GitHub cron is UTC, so `06:50 UTC` is `12:20 Asia/Kolkata`. Scheduled GitHub Actions may begin a few minutes late, but the queried Sentry window still ends at exactly 12:20 PM IST.
 
 The workflow must be committed to the default branch before GitHub will run its schedule.
 

@@ -31,7 +31,7 @@ if (!/^\d{4}-\d{2}-\d{2}$/.test(reportDate)) {
   throw new Error('SENTRY_REPORT_DATE must use YYYY-MM-DD format.');
 }
 
-const windowEnd = new Date(`${reportDate}T16:30:00.000Z`);
+const windowEnd = new Date(`${reportDate}T06:50:00.000Z`);
 if (Number.isNaN(windowEnd.getTime())) {
   throw new Error('SENTRY_REPORT_DATE is not a valid date.');
 }
@@ -239,7 +239,7 @@ const context = {
 const summaryLines = [
   '# Daily Sentry summary',
   '',
-  `Window: ${windowStart.toISOString()} to ${windowEnd.toISOString()} (10 PM IST to 10 PM IST)`,
+  `Window: ${windowStart.toISOString()} to ${windowEnd.toISOString()} (12:20 PM IST to 12:20 PM IST)`,
   `Qualifying issues: ${dailyIssues.length}`,
   '',
   ...dailyIssues.map(({ issue }) => (

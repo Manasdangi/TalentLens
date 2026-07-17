@@ -2,8 +2,8 @@ name: Daily Sentry Codex Review
 
 on:
   schedule:
-    # GitHub cron uses UTC. 16:30 UTC is 22:00 Asia/Kolkata.
-    - cron: '30 16 * * *'
+    # GitHub cron uses UTC. 06:50 UTC is 12:20 Asia/Kolkata.
+    - cron: '50 6 * * *'
   workflow_dispatch:
     inputs:
       report_date:
@@ -221,7 +221,7 @@ jobs:
           git push origin "HEAD:$branch"
 
           {
-            printf 'Automated combined review of %s Sentry issue(s) for the 24-hour window ending at 10 PM IST on %s.\n\n' "$ISSUE_COUNT" "$REPORT_DATE"
+            printf 'Automated combined review of %s Sentry issue(s) for the 24-hour window ending at 12:20 PM IST on %s.\n\n' "$ISSUE_COUNT" "$REPORT_DATE"
             cat "$summary"
             printf '\n## Codex analysis\n\n'
             head -c 10000 "$report"
