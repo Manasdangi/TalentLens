@@ -1,3 +1,6 @@
+// Loads .env and initialises Sentry. Locally this is also preloaded via `--import`
+// (same module, evaluated once); on Vercel there is no preload step, so import it here.
+import './instrument.js';
 import * as Sentry from '@sentry/node';
 import express, { type RequestHandler } from 'express';
 import cors from 'cors';
@@ -6,8 +9,11 @@ import session from 'express-session';
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 
+const IS_VERCEL = Boolean(process.env.VERCEL);
 
 const app = express();
+// Behind Vercel's proxy: needed for correct client IP (rate limiting) and secure cookies.
+app.set('trust proxy', 1);
 const PORT = process.env.PORT || 3001;
 const HOST = process.env.HOST || '0.0.0.0';
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
@@ -506,7 +512,12 @@ if (process.env.SENTRY_TEST_ROUTE_ENABLED === 'true') {
 
 Sentry.setupExpressErrorHandler(app);
 
-app.listen(Number(PORT), HOST, () => {
-  console.log(`🚀 Backend server running on http://${HOST}:${PORT}`);
-  console.log(`📍 Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:5173'}`);
-});
+// Vercel runs the exported app as a function and does not support port listeners.
+if (!IS_VERCEL) {
+  app.listen(Number(PORT), HOST, () => {
+    console.log(`🚀 Backend server running on http://${HOST}:${PORT}`);
+    console.log(`📍 Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:5173'}`);
+  });
+}
+
+export default app;
