@@ -4,6 +4,12 @@ import react from '@vitejs/plugin-react'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  server: {
+    // In development, /api calls go to the local Express backend (yarn --cwd backend dev).
+    proxy: {
+      '/api': process.env.VITE_DEV_API_TARGET || 'http://localhost:3001',
+    },
+  },
   optimizeDeps: {
     include: ['pdfjs-dist']
   },

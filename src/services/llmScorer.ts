@@ -1,6 +1,7 @@
 import type { RoleType, ExperienceLevel } from "../constants";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3001";
+// Same-origin by default (Vercel serverless functions in /api). Set VITE_API_URL only to point at another backend.
+const API_BASE_URL = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
 
 export type ScoreLevel = "poor" | "average" | "good" | "very_good" | "excellent";
 
@@ -42,7 +43,7 @@ export async function scoreResume(
     return payload as ScoringResult;
   } catch (error: unknown) {
     if (error instanceof TypeError) {
-      throw new Error("Could not reach the scoring server. Please make sure the backend is running.");
+      throw new Error("Could not reach the scoring service. Please check your connection and try again.");
     }
     throw error;
   }

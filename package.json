@@ -15,10 +15,12 @@
   },
   "dependencies": {
     "@react-oauth/google": "^0.13.4",
+    "@sentry/node": "10.42.0",
     "@sentry/react": "10.42.0",
     "firebase": "^12.7.0",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.562.0",
+    "nodemailer": "^9.0.3",
     "pdfjs-dist": "^5.4.530",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
@@ -27,8 +29,10 @@
     "@eslint/js": "^9.39.1",
     "@playwright/test": "1.56.1",
     "@types/node": "^24.10.1",
+    "@types/nodemailer": "^8.0.2",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
+    "@vercel/node": "^30.0.0",
     "@vitejs/plugin-react": "^5.1.1",
     "eslint": "^9.39.1",
     "eslint-plugin-react-hooks": "^7.0.1",

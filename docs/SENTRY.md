@@ -41,7 +41,7 @@ The backend integration:
 - initializes before Express imports for auto-instrumentation
 - installs Sentry's Express error handler after all routes
 - captures scoring route exceptions
-- reports failed Groq upstream responses as Sentry messages
+- reports failed Claude API upstream responses as Sentry messages
 - avoids sending default PII
 - removes request cookies from events
 

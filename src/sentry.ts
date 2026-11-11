@@ -25,7 +25,7 @@ if (dsn && !isE2E) {
     tracesSampleRate: parseSampleRate(import.meta.env.VITE_SENTRY_TRACES_SAMPLE_RATE, 0.1),
     tracePropagationTargets: [
       /^\//,
-      import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001',
+      ...(import.meta.env.VITE_API_URL ? [import.meta.env.VITE_API_URL] : []),
     ],
     replaysSessionSampleRate: parseSampleRate(
       import.meta.env.VITE_SENTRY_REPLAYS_SESSION_SAMPLE_RATE,

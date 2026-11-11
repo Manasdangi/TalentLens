@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { HelpCircle, Mail, Send, X } from 'lucide-react';
 import styles from './SupportFeedback.module.css';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+const API_BASE_URL = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
 
 interface SupportFeedbackProps {
   user?: {

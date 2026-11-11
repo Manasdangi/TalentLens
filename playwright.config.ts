@@ -39,7 +39,7 @@ export default defineConfig({
       timeout: 120_000,
       env: {
         VITE_E2E_MODE: 'true',
-        VITE_API_BASE_URL: backendUrl,
+        VITE_API_URL: backendUrl,
       },
     },
   ],

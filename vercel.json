@@ -1,0 +1,5 @@
+{
+  "functions": {
+    "api/score-resume.ts": { "maxDuration": 60 }
+  }
+}
