@@ -27,7 +27,7 @@ describe('scoreResume', () => {
 
     await expect(scoreResume('resume', 'job', 'frontend', 'mid')).resolves.toEqual(result);
     expect(fetch).toHaveBeenCalledWith(
-      'http://localhost:3001/api/score-resume',
+      '/api/score-resume',
       expect.objectContaining({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -50,11 +50,11 @@ describe('scoreResume', () => {
     await expect(scoreResume('', '', '', '')).rejects.toThrow('Resume text is required.');
   });
 
-  it('translates network failures into a backend availability hint', async () => {
+  it('translates network failures into a connection hint', async () => {
     vi.mocked(fetch).mockRejectedValueOnce(new TypeError('Failed to fetch'));
 
     await expect(scoreResume('resume', '', 'frontend', 'mid')).rejects.toThrow(
-      'Could not reach the scoring server. Please make sure the backend is running.'
+      'Could not reach the scoring service. Please check your connection and try again.'
     );
   });
 });

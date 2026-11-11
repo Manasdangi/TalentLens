@@ -53,7 +53,7 @@ TalentLens/
 2. Create a `.env` (or `.env.local`) in the project root with:
 
    ```env
-   VITE_API_BASE_URL=http://localhost:3001
+   # VITE_API_URL is optional: /api is proxied to the local backend (port 3001) in dev
    # Plus any Firebase / Google OAuth vars your app uses (e.g. VITE_FIREBASE_*)
    ```
 
@@ -106,19 +106,17 @@ Used for server-side Google OAuth, sessions, and AI scoring. The Groq API key mu
 
 ## Deployment notes
 
-Deploy the backend and frontend separately:
+The frontend and the API deploy together on Vercel. The API lives in `api/` as Vercel Functions and is served from the same origin (`/api/score-resume`, `/api/support-feedback`, `/api/health`), so no CORS setup or backend URL is needed.
 
-1. Deploy `backend/` to a Node.js host such as Render, Railway, Fly.io, or another Express-compatible service.
-2. Set backend environment variables:
-   - `GROQ_API_KEY`
-   - `GROQ_MODEL` (optional)
-   - `FRONTEND_URL` (your deployed frontend URL)
-   - `SESSION_SECRET`
-   - Google OAuth variables if using backend OAuth routes
-3. Deploy the frontend to Vercel, Netlify, Firebase Hosting, or similar.
-4. Set frontend environment variable:
-   - `VITE_API_BASE_URL` (your deployed backend URL)
-5. Rebuild/redeploy the frontend after setting `VITE_API_BASE_URL`.
+Set these environment variables in the Vercel project (Production and Preview):
+
+- `GROQ_API_KEY` (required for scoring); `GROQ_MODEL` is optional
+- `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM_EMAIL`, `SUPPORT_EMAIL` (support form)
+- `SENTRY_DSN` (optional)
+- `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` (or `KV_REST_API_URL` + `KV_REST_API_TOKEN`) for a global rate limit. Without them the limit is per serverless instance only. Add Upstash Redis from the Vercel Marketplace.
+- `SCORE_RATE_LIMIT_MAX` / `SCORE_RATE_LIMIT_WINDOW_MS` (default 10 per hour per IP), `SUPPORT_RATE_LIMIT_MAX` (default 5 per hour per IP)
+
+`backend/` is the original Express server. It is still used for local development and the Playwright e2e tests, but it is not deployed.
 
 ## License
 
