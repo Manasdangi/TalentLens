@@ -7,12 +7,12 @@ TalentLens is a resume–job fit analysis platform that helps **candidates** imp
 - **Candidates**: Upload a resume (PDF), optionally link or paste a job description, choose role and experience level, and get an AI-powered fit score with strengths, improvements, and keyword match/missing analysis.
 - **Recruiters**: Sign in as a recruiter to upload and manage job opportunities that candidates can use for analysis.
 
-Analysis is powered by an LLM (Groq) that acts like an ATS/HR expert: it returns a score (poor → excellent), percentage, summary, strengths, improvements, keyword matches, and missing keywords.
+Analysis is powered by an LLM (Claude, via the Anthropic API) that acts like an ATS/HR expert: it returns a score (poor → excellent), percentage, summary, strengths, improvements, keyword matches, and missing keywords.
 
 ## Tech stack
 
 - **Frontend**: React 19, TypeScript, Vite, CSS Modules, Firebase (auth), Google OAuth (`@react-oauth/google`), PDF.js for resume parsing.
-- **Backend**: Node.js, Express, Passport (Google OAuth), sessions, CORS, Groq API proxy for AI scoring.
+- **Backend**: Node.js, Express, Passport (Google OAuth), sessions, CORS, Claude API proxy for AI scoring (local dev; production uses Vercel Functions).
 
 ## Project structure
 
@@ -37,7 +37,7 @@ TalentLens/
 ### Prerequisites
 
 - Node.js (v18+)
-- A [Groq](https://console.groq.com/) API key for resume scoring
+- An [Anthropic API key](https://console.anthropic.com/) for resume scoring
 - Firebase project (for auth and optional Firestore)
 - Optional: Google OAuth credentials for the backend
 
@@ -72,7 +72,7 @@ TalentLens/
 
 ### Backend
 
-Used for server-side Google OAuth, sessions, and AI scoring. The Groq API key must live here, not in the frontend.
+Used for server-side Google OAuth, sessions, and AI scoring. The Anthropic API key must live here, not in the frontend.
 
 1. Go to the backend folder and install dependencies:
 
@@ -86,8 +86,8 @@ Used for server-side Google OAuth, sessions, and AI scoring. The Groq API key mu
    - `PORT`, `SESSION_SECRET`
    - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
    - `FRONTEND_URL` (e.g. `http://localhost:5173`)
-   - `GROQ_API_KEY`
-   - `GROQ_MODEL` (optional, defaults to `llama-3.3-70b-versatile`)
+   - `ANTHROPIC_API_KEY`
+   - `ANTHROPIC_MODEL` (optional, defaults to `claude-haiku-5-5`)
 
 3. Run the server:
 
@@ -110,7 +110,7 @@ The frontend and the API deploy together on Vercel. The API lives in `api/` as V
 
 Set these environment variables in the Vercel project (Production and Preview):
 
-- `GROQ_API_KEY` (required for scoring); `GROQ_MODEL` is optional
+- `ANTHROPIC_API_KEY` (required for scoring); `ANTHROPIC_MODEL` is optional (defaults to `claude-haiku-5-5`; `claude-sonnet-5-5` gives deeper feedback at a higher cost)
 - `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM_EMAIL`, `SUPPORT_EMAIL` (support form)
 - `SENTRY_DSN` (optional)
 - `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` (or `KV_REST_API_URL` + `KV_REST_API_TOKEN`) for a global rate limit. Without them the limit is per serverless instance only. Add Upstash Redis from the Vercel Marketplace.

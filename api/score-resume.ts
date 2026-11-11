@@ -1,19 +1,19 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { captureException, captureMessage } from './_lib/sentry.js';
 import { checkRateLimit, getClientKey } from './_lib/rateLimit.js';
+import { ClaudeApiError, DEFAULT_CLAUDE_MODEL, askClaude, extractJsonObject } from './_lib/claude.js';
 import {
   EXPERIENCE_LABELS,
   ROLE_LABELS,
   getScorePrompt,
-  isScoringResult,
+  normalizeScoringResult,
   type ScoringResult,
 } from './_lib/scoring.js';
 
-const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const RATE_LIMIT_WINDOW_MS = Number(process.env.SCORE_RATE_LIMIT_WINDOW_MS || 60 * 60 * 1000);
 const RATE_LIMIT_MAX = Number(process.env.SCORE_RATE_LIMIT_MAX || 10);
 
-// Input caps protect the Groq quota from oversized or abusive payloads.
+// Input caps protect the Claude API budget from oversized or abusive payloads.
 const MAX_RESUME_CHARS = 40_000;
 const MAX_JOB_DESCRIPTION_CHARS = 20_000;
 const MAX_LABEL_CHARS = 100;
@@ -84,71 +84,62 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  const apiKey = process.env.GROQ_API_KEY;
+  const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
-    console.error('[score-resume] GROQ_API_KEY is not configured');
-    res.status(500).json({ error: 'Groq API key is not configured on the server.' });
+    console.error('[score-resume] ANTHROPIC_API_KEY is not configured');
+    res.status(500).json({ error: 'The scoring service is not configured on the server.' });
     return;
   }
 
   const userContent = hasJobDescription
-    ? `RESUME:\n${resumeText}\n\n---\n\nJOB DESCRIPTION:\n${jobDescription}`
-    : `RESUME:\n${resumeText}\n\n---\n\nNote: No specific job description was provided. Please evaluate the resume based on general best practices for a ${role} at ${experience} level.`;
+    ? `<resume>\n${resumeText}\n</resume>\n\n<job_description>\n${jobDescription}\n</job_description>`
+    : `<resume>\n${resumeText}\n</resume>\n\nNote: No specific job description was provided. Please evaluate the resume based on general best practices for a ${role} at ${experience} level.`;
 
   try {
-    const groqResponse = await fetch(GROQ_API_URL, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
-        messages: [
-          { role: 'system', content: getScorePrompt(role, experience, hasJobDescription) },
-          { role: 'user', content: userContent },
-        ],
-        response_format: { type: 'json_object' },
-        temperature: 0.3,
-      }),
-      signal: AbortSignal.timeout(50_000),
+    const text = await askClaude({
+      apiKey,
+      model: process.env.ANTHROPIC_MODEL || DEFAULT_CLAUDE_MODEL,
+      system: getScorePrompt(role, experience, hasJobDescription),
+      user: userContent,
     });
 
-    if (!groqResponse.ok) {
-      const errorBody = await groqResponse.text();
-      await captureMessage('Groq request failed', 'score-resume', {
-        upstream_status: groqResponse.status,
-        body: errorBody.slice(0, 1000),
-      });
-      console.error('[score-resume] Groq request failed', { status: groqResponse.status, body: errorBody });
-      res.status(groqResponse.status).json({
-        error:
-          groqResponse.status === 429
-            ? 'Rate limit exceeded. Please wait a moment and try again.'
-            : groqResponse.status === 401
-              ? 'Invalid Groq API key. Please check the server configuration.'
-              : 'Failed to analyze resume.',
-      });
+    if (!text) {
+      res.status(502).json({ error: 'No response from the AI model.' });
       return;
     }
 
-    const data = (await groqResponse.json()) as {
-      choices?: Array<{ message?: { content?: string } }>;
-    };
-    const content = data.choices?.[0]?.message?.content;
-    if (!content) {
-      res.status(502).json({ error: 'No response from LLM.' });
-      return;
+    let parsed: ScoringResult | null = null;
+    try {
+      parsed = normalizeScoringResult(extractJsonObject(text));
+    } catch {
+      console.error('[score-resume] Model response was not valid JSON', text.slice(0, 500));
     }
-
-    const parsed = JSON.parse(content) as unknown;
-    if (!isScoringResult(parsed)) {
-      res.status(502).json({ error: 'LLM returned an invalid scoring result.' });
+    if (!parsed) {
+      res.status(502).json({ error: 'The AI model returned an invalid scoring result.' });
       return;
     }
 
     res.json(parsed);
   } catch (error) {
+    if (error instanceof ClaudeApiError) {
+      await captureMessage('Claude API request failed', 'score-resume', {
+        upstream_status: error.status,
+        body: error.body.slice(0, 1000),
+      });
+      console.error('[score-resume] Claude API request failed', { status: error.status, body: error.body });
+
+      if (error.status === 429) {
+        res.status(429).json({ error: 'The AI service is rate limited. Please wait a moment and try again.' });
+      } else if (error.status === 529 || error.status >= 500) {
+        res.status(503).json({ error: 'The AI service is busy right now. Please try again in a moment.' });
+      } else if (error.status === 401 || error.status === 403) {
+        res.status(500).json({ error: 'The scoring service is misconfigured. Please try again later.' });
+      } else {
+        res.status(502).json({ error: 'Failed to analyze resume.' });
+      }
+      return;
+    }
+
     await captureException(error, 'score-resume');
     console.error('[score-resume] Unexpected scoring error', error);
     res.status(500).json({ error: 'Failed to analyze resume.' });
