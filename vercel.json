@@ -1,5 +1,11 @@
 {
   "functions": {
-    "api/score-resume.ts": { "maxDuration": 60 }
-  }
+    "api/score-resume.ts": { "maxDuration": 60 },
+    "api/tailor-resume.ts": { "maxDuration": 60 },
+    "api/parse-resume.ts": { "maxDuration": 60 }
+  },
+  "rewrites": [
+    { "source": "/p/:slug/resume.pdf", "destination": "/api/resume-pdf?slug=:slug" },
+    { "source": "/p/:slug", "destination": "/api/portfolio?slug=:slug" }
+  ]
 }

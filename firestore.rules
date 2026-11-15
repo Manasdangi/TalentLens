@@ -85,5 +85,43 @@ service cloud.firestore {
       allow create, update: if request.auth != null && request.resource.data.userId == request.auth.uid;
       allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
+
+    // Portfolios: the document id is the public link (/p/{slug}), so ids are unique by design.
+    // Anyone (signed in or not) can read a published portfolio; owners can read and edit theirs.
+    // Keep the reserved list in sync with RESERVED_SLUGS in api/_lib/profile.ts.
+    function isValidPortfolioSlug(slug) {
+      return slug.matches('^[a-z0-9][a-z0-9-]{1,38}[a-z0-9]$') && !(slug in [
+        'admin', 'api', 'app', 'assets', 'auth', 'dashboard', 'help', 'jobs', 'login', 'logout',
+        'p', 'portfolio', 'recruiter', 'settings', 'signup', 'support', 'talentlens', 'www'
+      ]);
+    }
+
+    function isValidPortfolio(slug) {
+      let data = request.resource.data;
+      return data.userId == request.auth.uid &&
+        data.slug == slug &&
+        data.published is bool &&
+        data.profileJson is string && data.profileJson.size() < 200000 &&
+        data.keys().hasOnly(['slug', 'userId', 'name', 'theme', 'accent', 'profileJson', 'published',
+          'showVerified', 'createdAt', 'updatedAt']);
+    }
+
+    match /Portfolios/{slug} {
+      // get: a missing document is readable so the editor can check whether a link is free.
+      allow get: if resource == null || resource.data.published == true ||
+        (request.auth != null && resource.data.userId == request.auth.uid);
+      allow list: if resource.data.published == true ||
+        (request.auth != null && resource.data.userId == request.auth.uid);
+      allow create: if request.auth != null && isValidPortfolioSlug(slug) && isValidPortfolio(slug);
+      allow update: if request.auth != null && resource.data.userId == request.auth.uid && isValidPortfolio(slug);
+      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+
+    // VerifiedProfiles/{uid}: GitHub/LeetCode stats written only by the verify-profile function
+    // (service account, which bypasses these rules). Public so portfolios and recruiters can show badges.
+    match /VerifiedProfiles/{userId} {
+      allow read: if true;
+      allow write: if false;
+    }
   }
 }

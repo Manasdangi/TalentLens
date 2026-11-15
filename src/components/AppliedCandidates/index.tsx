@@ -4,6 +4,7 @@ import { getApplicationsByJob } from '../../services/applicationService';
 import { getResumeForUser } from '../../services/resumeService';
 import type { JobApplication } from '../../types/jobApplication';
 import type { JobOpportunity } from '../../types/jobOpportunity';
+import { VerifiedBadges } from '../VerifiedBadges';
 import styles from './AppliedCandidates.module.css';
 
 interface AppliedCandidatesProps {
@@ -108,6 +109,7 @@ export function AppliedCandidates({ job }: AppliedCandidatesProps) {
                       <FileText size={12} />
                       {app.resumeLabel} · {app.fileName}
                     </span>
+                    <VerifiedBadges userId={app.candidateId} />
                   </div>
                   <div className={styles.appliedDate}>
                     Applied {formatDate(app.appliedAt)}
