@@ -6,6 +6,9 @@ TalentLens is a resume–job fit analysis platform that helps **candidates** imp
 
 - **Candidates**: Upload a resume (PDF), optionally link or paste a job description, choose role and experience level, and get an AI-powered fit score with strengths, improvements, and keyword match/missing analysis.
 - **Recruiters**: Sign in as a recruiter to upload and manage job opportunities that candidates can use for analysis.
+- **Tailor resume to a job**: after scoring against a job description, Claude rewrites the candidate's strongest bullets in that job's language. It only uses what the resume already shows, drops any rewrite whose original bullet isn't in the resume, and lists job keywords the resume can't back up.
+- **Portfolio from resume**: candidates import a resume or LinkedIn "Save to PDF" export, edit it, pick one of 12 themes and publish it at `/p/<their-name>`. Each portfolio also serves a matching ATS-friendly resume PDF at `/p/<their-name>/resume.pdf`, and the editor can download it too.
+- **Verified GitHub + LeetCode**: candidates prove they own an account by putting a short code (`TL-XXXXXX`) in their GitHub bio or LeetCode Summary. Live stats then show as verified badges on their portfolio and in recruiters' ranked and applied candidate lists.
 
 Analysis is powered by an LLM (Claude, via the Anthropic API) that acts like an ATS/HR expert: it returns a score (poor → excellent), percentage, summary, strengths, improvements, keyword matches, and missing keywords.
 
@@ -115,8 +118,17 @@ Set these environment variables in the Vercel project (Production and Preview):
 - `SENTRY_DSN` (optional)
 - `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` (or `KV_REST_API_URL` + `KV_REST_API_TOKEN`) for a global rate limit. Without them the limit is per serverless instance only. Add Upstash Redis from the Vercel Marketplace.
 - `SCORE_RATE_LIMIT_MAX` / `SCORE_RATE_LIMIT_WINDOW_MS` (default 10 per hour per IP), `SUPPORT_RATE_LIMIT_MAX` (default 5 per hour per IP)
+- `FIREBASE_SERVICE_ACCOUNT` (required for GitHub/LeetCode verification): the Firebase service-account JSON, raw or base64. Create it in Firebase console → Project settings → Service accounts → Generate new private key. Only `api/verify-profile` uses it, to write `VerifiedProfiles/{uid}`.
+- `VERIFICATION_SECRET` (optional): secret for the `TL-XXXXXX` codes. Defaults to the service-account key.
+- `GITHUB_TOKEN` (optional): a read-only token so GitHub lookups get 5,000 requests/hour instead of 60 per IP.
+- `FIREBASE_PROJECT_ID` (optional, defaults to `talentlens-13926`).
+- `TAILOR_RATE_LIMIT_MAX`, `PARSE_RATE_LIMIT_MAX` (default 10 per hour per IP), `VERIFY_RATE_LIMIT_MAX` (default 30 per hour per user).
 
-`backend/` is the original Express server. It is still used for local development and the Playwright e2e tests, but it is not deployed.
+After merging, deploy the Firestore rules (`firebase deploy --only firestore:rules`). They add the public-read `Portfolios` and server-only `VerifiedProfiles` collections.
+
+Portfolio pages (`/p/:slug`) are rendered by `api/portfolio.ts` through the rewrites in `vercel.json`. The page is cached on Vercel's CDN for 60 seconds, so edits show up within about a minute. LeetCode has no official API: stats come from its public GraphQL endpoint and may break if LeetCode changes it.
+
+`backend/` is the original Express server. It is still used for local development and the Playwright e2e tests, but it is not deployed. It only implements scoring and support: to try tailoring, portfolio import, portfolio pages or verification locally, run `vercel dev`.
 
 ## License
 

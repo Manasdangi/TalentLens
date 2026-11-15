@@ -9,6 +9,7 @@ import type { ResumeByRoleDoc } from '../../types/resumeByRole';
 import type { ScoringResult } from '../../services/llmScorer';
 import type { RoleType, ExperienceLevel } from '../../constants';
 import { SCORE_LABELS, MAX_CANDIDATES_TO_RANK } from '../../constants';
+import { VerifiedBadges } from '../VerifiedBadges';
 import styles from './RankedCandidates.module.css';
 
 interface RankedEntry {
@@ -151,6 +152,7 @@ export function RankedCandidates({ job }: RankedCandidatesProps) {
                         {entry.resume.userEmail}
                       </span>
                     )}
+                    <VerifiedBadges userId={entry.resume.userId} />
                   </div>
                   <div className={`${styles.scoreBadge} ${scoreClass}`}>
                     {entry.result.percentage}%

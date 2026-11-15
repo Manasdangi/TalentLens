@@ -6,8 +6,9 @@ export default defineConfig({
   plugins: [react()],
   server: {
     // In development, /api calls go to the local Express backend (yarn --cwd backend dev).
+    // api/_lib/* holds TypeScript shared with the browser, so those module requests must not be proxied.
     proxy: {
-      '/api': process.env.VITE_DEV_API_TARGET || 'http://localhost:3001',
+      '^/api/(?!_lib/)': process.env.VITE_DEV_API_TARGET || 'http://localhost:3001',
     },
   },
   optimizeDeps: {
